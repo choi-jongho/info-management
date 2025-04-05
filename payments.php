@@ -202,28 +202,30 @@
                 </div>
             </form>
             <div class="card-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Payment ID</th>
-                            <th>Member Name</th>
-                            <th>Member ID</th>
-                            <th>Amount</th>
-                            <th>Payment Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while ($payment = $payments_result->fetch_assoc()): ?>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
                             <tr>
-                                <td><?php echo htmlspecialchars($payment['payment_id']); ?></td>
-                                <td><?php echo htmlspecialchars($payment['first_name'] . ' ' . $payment['last_name']); ?></td>
-                                <td><?php echo htmlspecialchars($payment['member_id']); ?></td>
-                                <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
-                                <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
+                                <th>Payment ID</th>
+                                <th>Member Name</th>
+                                <th>Member ID</th>
+                                <th>Amount</th>
+                                <th>Payment Date</th>
                             </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <?php while ($payment = $payments_result->fetch_assoc()): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars($payment['payment_id']); ?></td>
+                                    <td><?php echo htmlspecialchars($payment['first_name'] . ' ' . $payment['last_name']); ?></td>
+                                    <td><?php echo htmlspecialchars($payment['member_id']); ?></td>
+                                    <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
+                                    <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
+                                </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>    
+                </div>
                 <!-- Pagination -->
                 <?php if ($total_pages > 1): ?>
                     <div class="d-flex justify-content-between align-items-center mt-4">

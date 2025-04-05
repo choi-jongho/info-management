@@ -82,7 +82,7 @@
 <body>
     <?php include('navbar.php'); ?>
 
-    <main class="container">
+    <main class="container my-4">
         <div class="table-container">
             <h2 class="text-center mb-4"><i class="fas fa-clipboard-list me-2"></i>Activity Logs</h2>
 
@@ -94,28 +94,31 @@
                 </div>
             </form>
 
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>Log ID</th>
-                        <th>Officer ID</th>
-                        <th>Action</th>
-                        <th>Description</th>
-                        <th>Timestamp</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php while ($log = $result->fetch_assoc()): ?>
+            <!-- Responsive Table Container -->
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
                         <tr>
-                            <td><?php echo htmlspecialchars($log['log_id']); ?></td>
-                            <td><?php echo htmlspecialchars($log['officer_id']); ?></td>
-                            <td><?php echo htmlspecialchars($log['action']); ?></td>
-                            <td><?php echo htmlspecialchars($log['description']); ?></td>
-                            <td><?php echo htmlspecialchars($log['date']); ?></td>
+                            <th>Log ID</th>
+                            <th>Officer ID</th>
+                            <th>Action</th>
+                            <th>Description</th>
+                            <th>Timestamp</th>
                         </tr>
-                    <?php endwhile; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php while ($log = $result->fetch_assoc()): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($log['log_id']); ?></td>
+                                <td><?php echo htmlspecialchars($log['officer_id']); ?></td>
+                                <td><?php echo htmlspecialchars($log['action']); ?></td>
+                                <td><?php echo htmlspecialchars($log['description']); ?></td>
+                                <td><?php echo htmlspecialchars($log['date']); ?></td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
 
             <!-- Pagination -->
             <?php if ($total_pages > 1): ?>

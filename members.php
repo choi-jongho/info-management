@@ -218,7 +218,7 @@
                     </a>
                 </div>
                 
-                <div class="col-md-6">
+                <div class="col-md-6 mt-md-0 mt-3 search-bar">
                     <form class="d-flex" method="GET" action="">
                         <input type="text" class="form-control me-2" placeholder="Search members..." name="search" value="<?php echo htmlspecialchars($search); ?>">
                         <button type="submit" class="btn btn-navy">
