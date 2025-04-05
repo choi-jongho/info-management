@@ -136,12 +136,6 @@
                 $contact_num = cleanInput($sheet->getCell('E'.$row)->getValue());
                 $email = cleanInput($sheet->getCell('F'.$row)->getValue());
                 $status = strtolower(cleanInput($sheet->getCell('G'.$row)->getValue()));
-                
-                // Handle numeric values properly for balance
-                $balance_val = $sheet->getCell('H'.$row)->getValue();
-                $balance = is_numeric($balance_val) ? $balance_val : 0;
-                
-                $semester = cleanInput($sheet->getCell('I'.$row)->getValue());
 
                 // CRITICAL: Skip rows with empty or invalid required fields
                 if (empty($member_id) || empty($last_name) || empty($first_name)) {
