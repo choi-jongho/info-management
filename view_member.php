@@ -181,11 +181,6 @@
             </div>
             <div class="card-footer bg-light">
                 <div class="d-flex justify-content-end align-items-center">
-                    <?php if ($_SESSION['officer_role'] === 'intel_president'): ?>
-                        <a href="edit_member.php?id=<?php echo urlencode($member_id); ?>" class="btn btn-primary me-2">
-                            <i class="fas fa-edit me-2"></i>Edit Information
-                        </a>
-                    <?php endif; ?>
                     <a href="payment_history.php?member_id=<?php echo urlencode($member_id); ?>" class="btn btn-outline-primary">
                         <i class="fas fa-money-bill-wave me-2"></i>View Payment History
                     </a>
