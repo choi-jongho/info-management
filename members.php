@@ -260,7 +260,7 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Members ID</th>
+                                <th>Member ID</th>
                                 <th>Name</th>
                                 <th>Contact Info</th>
                                 <th>Status</th>
