@@ -12,9 +12,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
     $username = sanitize_input($_POST['username'] ?? '');
     $password = sanitize_input($_POST['password'] ?? '');
 
-    // Validate inputs
+    // Validate inputs  
     if (empty($username)) {
-        $login_errors[] = "Username is required.";
+        $login_errors[] = "Username, Officer ID, Member ID, or Role ID is required.";
     }
     if (empty($password)) {
         $login_errors[] = "Password is required.";
@@ -22,24 +22,33 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
 
     // If no errors, proceed with authentication
     if (empty($login_errors)) {
-        $stmt = $conn->prepare("SELECT officer_id, username, password FROM officers WHERE username = ?");
-        $stmt->bind_param("s", $username);
+        $stmt = $conn->prepare("
+            SELECT o.officer_id, o.username, o.password, m.member_id, r.role_id 
+            FROM officers o
+            LEFT JOIN members m ON o.officer_id = m.member_id
+            LEFT JOIN role r ON o.role_id = r.role_id
+            WHERE o.username = ? OR o.officer_id = ? OR m.member_id = ? OR r.role_id = ?
+          ");
+        $stmt->bind_param("ssss", $username, $username, $username, $username);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
-            $user = $result->fetch_assoc();
-            // Verify the password
-            if (password_verify($password, $user['password'])) {
-                // Authentication successful, set session variables
-                $_SESSION['officer_id'] = $user['officer_id'];
-                $_SESSION['username'] = $user['username'];
-                log_activity('Login', "User logged in successfully", $user['officer_id']);
-                header("Location: dashboard.php"); // Redirect to dashboard or homepage
-                exit();
-            } else {
-                $login_errors[] = "Incorrect password.";
-            }
+          $user = $result->fetch_assoc();
+      
+          if (password_verify($password, $user['password'])) {
+              // Successful login—store session variables
+              $_SESSION['officer_id'] = $user['officer_id'];
+              $_SESSION['username'] = $user['username'];
+              $_SESSION['role_id'] = $user['role_id'];
+              $_SESSION['member_id'] = $user['member_id'];
+      
+              log_activity('Login', "User logged in successfully", $user['officer_id']);
+              header("Location: dashboard.php");
+              exit();
+          } else {
+              $login_errors[] = "Incorrect password.";
+          }
         } else {
             $login_errors[] = "Username not found.";
         }
@@ -129,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
                         <!-- Login Form -->
                         <form action="login.php" method="POST">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Username</label>
+                                <label for="username" class="form-label">Officer ID or Username</label>
                                 <input type="text" class="form-control" id="username" name="username" required>
                             </div>
 
