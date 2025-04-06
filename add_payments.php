@@ -127,6 +127,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="images/info-tech.png">
 </head>
 <style>
     html, body {
@@ -176,7 +177,6 @@
                         <li><?php echo htmlspecialchars($error); ?></li>
                     <?php endforeach; ?>
                 </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
 
@@ -265,6 +265,16 @@
             if (event.target.classList.contains("remove-payment")) {
                 event.target.closest(".payment-entry").remove();
             }
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                let alertBox = document.querySelector(".alert");
+                if (alertBox) {
+                    alertBox.style.transition = "opacity 0.5s";
+                    alertBox.style.opacity = "0";
+                    setTimeout(() => alertBox.style.display = "none", 500);
+                }
+            }, 2000); // 2 seconds delay
         });
     </script>
     <!-- Include footer -->

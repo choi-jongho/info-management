@@ -57,6 +57,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
     <title>Officer Login</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" href="images/info-tech.png">
     
     <style>
         html, body {
@@ -90,6 +91,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
             color: #fff;
         }
 
+        .alert-danger {
+          padding: 10px;
+        }
+
         .input-group-text {
             cursor: pointer;
         }
@@ -112,13 +117,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
                     <div class="card-body">
                         <!-- Display login error messages -->
                         <?php if (!empty($login_errors)): ?>
-                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                <ul>
+                            <div class="alert alert-danger alert-dismissible" role="alert">
+                                <ul class="mb-0">
                                     <?php foreach ($login_errors as $error): ?>
                                         <li><?php echo htmlspecialchars($error); ?></li>
                                     <?php endforeach; ?>
                                 </ul>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                         <?php endif; ?>
 
@@ -166,6 +170,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
                 passwordField.type = "password";
                 togglePassword.innerHTML = '<i class="fas fa-eye"></i>'; // Change icon
             }
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                let alertBox = document.querySelector(".alert");
+                if (alertBox) {
+                    alertBox.style.transition = "opacity 0.5s";
+                    alertBox.style.opacity = "0";
+                    setTimeout(() => alertBox.style.display = "none", 500);
+                }
+            }, 2000); // 2 seconds delay
         });
     </script>
 </body>

@@ -131,7 +131,6 @@
                         // Log both updates
                         $member_name = "$first_name $last_name";
                         log_activity('Update Member', "Updated member: $member_name (ID: $member_id)", $officer_id);
-                        log_activity('Update Fees', "Updated fees for $member_name: ₱$balance, Semesters: $semester_count, School Years: $school_year_count", $officer_id);
                     } else {
                         throw new Exception("Database error when updating fees: " . $stmt->error);
                     }
@@ -157,8 +156,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="images/info-tech.png">
 </head>
 <style>
         html, body {
@@ -211,7 +209,6 @@
                 <?php if ($success): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <i class="fas fa-check-circle me-2"></i>Member information updated successfully!
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
                 
@@ -223,7 +220,6 @@
                                 <li><?php echo $error; ?></li>
                             <?php endforeach; ?>
                         </ul>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 <?php endif; ?>
                 
@@ -294,8 +290,19 @@
     <footer class="bg-navy text-white text-center py-3 mt-auto">
         <p class="mb-0">&copy; 2025 Information Technology Link | All Rights Reserved</p>
     </footer>
-
     <!-- Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+                document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                let alertBox = document.querySelector(".alert");
+                if (alertBox) {
+                    alertBox.style.transition = "opacity 0.5s";
+                    alertBox.style.opacity = "0";
+                    setTimeout(() => alertBox.style.display = "none", 500);
+                }
+            }, 2000); // 2 seconds delay
+        });
+    </script>
 </body>
 </html>

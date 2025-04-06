@@ -124,6 +124,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" href="images/info-tech.png">
     <!-- Custom Styles -->
     <style>
         html, body {
@@ -190,7 +191,6 @@
         .no-results i {
             font-size: 4rem;
             color: #adb5bd;
-            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -204,7 +204,6 @@
         <?php if(isset($_SESSION['success_message'])): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fas fa-check-circle me-2"></i><?php echo $_SESSION['success_message']; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <?php unset($_SESSION['success_message']); ?>
         <?php endif; ?>
@@ -347,7 +346,6 @@
                                                 <div class="modal-content">
                                                     <div class="modal-header bg-danger text-white">
                                                         <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
-                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                                                     </div>
                                                     <div class="modal-body">
                                                         <p>Are you sure you want to delete member <strong><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></strong>?</p>
@@ -415,7 +413,7 @@
                     </p>
                     <?php if(!empty($search) || !empty($status_filter) || !empty($semester_filter)): ?>
                         <a href="members.php" class="btn btn-secondary mt-3">
-                            <i class="fas fa-sync-alt"></i>Reset All Filter
+                            <p><i class="fas fa-sync-alt"></i> Reset All Filter</p>
                         </a>
                     <?php endif; ?>
                 </div>
@@ -442,6 +440,16 @@
                     }
                 });
             });
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                let alertBox = document.querySelector(".alert");
+                if (alertBox) {
+                    alertBox.style.transition = "opacity 0.5s";
+                    alertBox.style.opacity = "0";
+                    setTimeout(() => alertBox.style.display = "none", 500);
+                }
+            }, 2000); // 2 seconds delay
         });
     </script>
 </body>

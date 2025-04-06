@@ -62,6 +62,8 @@
                     if ($stmt->execute()) {
                         $conn->commit(); // Commit transaction
                         $_SESSION['success_message'] = "Fees added successfully for eligible members!";
+                        header("Location: members.php");
+                        exit();
                         log_activity("Add Fees", "Added fee: $fee_type (₱$fee_amount) for Semester: $semester, SY: $school_year", $officer_id);
                     } else {
                         throw new Exception("Error adding fees: " . $stmt->error);
@@ -91,7 +93,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
+    <link rel="icon" href="images/info-tech.png">
     <!-- Custom CSS -->
     <style>
         html, body {
@@ -204,6 +206,18 @@
     
     <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                let alertBox = document.querySelector(".alert");
+                if (alertBox) {
+                    alertBox.style.transition = "opacity 0.5s";
+                    alertBox.style.opacity = "0";
+                    setTimeout(() => alertBox.style.display = "none", 500);
+                }
+            }, 2000); // 2 seconds delay
+        });
+    </script>
     
     <?php include('footer.php'); ?>
 </body>
