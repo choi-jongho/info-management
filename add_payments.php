@@ -13,6 +13,7 @@
 
     $errors = [];
     $success = false;
+    $receipt_data = [];
 
     // Handle form submission for adding payments
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -56,6 +57,7 @@
         // Process payments
         if (empty($errors)) {
             $conn->begin_transaction(); // Start transaction
+            $payment_ids = []; // Track payment IDs for receipt
 
             try {
                 foreach ($amounts as $key => $amount) {
@@ -80,10 +82,13 @@
                     // Proceed only if payment covers the fee
                     if ($amount >= $fee_amount) {
                         // Insert payment record
-                        $stmt = $conn->prepare("INSERT INTO payments (member_id, amount, payment_date) VALUES (?, ?, NOW())");
-                        $stmt->bind_param("sd", $member_id, $amount);
+                        $stmt = $conn->prepare("INSERT INTO payments (member_id, amount, payment_date, semester, school_year) VALUES (?, ?, NOW(), ?, ?)");
+                        $stmt->bind_param("sdss", $member_id, $amount, $semester, $school_year);
 
                         if ($stmt->execute()) {
+                            $payment_id = $conn->insert_id;
+                            $payment_ids[] = $payment_id;
+                            
                             $stmt->close();
 
                             // Delete the fee record after successful payment
@@ -93,6 +98,14 @@
                             if ($stmt->execute()) {
                                 log_activity("Add Payment", "Payment of ₱$amount added for Member: $member_name (ID: $member_id), Semester: $semester, SY: $school_year", $officer_id);
                                 log_activity("Delete Fee", "Deleted fee for Member: $member_name (ID: $member_id), Semester: $semester, SY: $school_year", $officer_id);
+                                
+                                // Add to receipt data
+                                $receipt_data[] = [
+                                    'payment_id' => $payment_id,
+                                    'amount' => $amount,
+                                    'semester' => $semester,
+                                    'school_year' => $school_year
+                                ];
                             } else {
                                 throw new Exception("Failed to delete fee record.");
                             }
@@ -106,9 +119,30 @@
 
                 $conn->commit(); // Commit transaction if all actions succeed
                 $success = true;
-                $_SESSION['success_message'] = "Payments recorded successfully!";
-                header("Location: members.php");
-                exit(); // Redirect after success
+                
+                // Store receipt data in session to display on receipt page
+                $_SESSION['receipt_data'] = [
+                    'member_id' => $member_id,
+                    'member_name' => $member_name,
+                    'payments' => $receipt_data,
+                    'payment_date' => date('Y-m-d H:i:s'),
+                    'officer_id' => $officer_id
+                ];
+                
+                // Get officer name
+                $stmt = $conn->prepare("SELECT CONCAT(m.first_name, ' ', m.last_name) AS officer_name 
+                FROM officers o 
+                JOIN members m ON o.member_id = m.member_id 
+                WHERE o.officer_id = ?");
+                $stmt->bind_param("s", $officer_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $officer = $result->fetch_assoc();
+                $_SESSION['receipt_data']['officer_name'] = $officer['officer_name'];
+                $stmt->close();
+                
+                header("Location: payment_receipt.php");
+                exit(); // Redirect to receipt page
             } catch (Exception $e) {
                 $conn->rollback(); // Rollback on failure
                 $errors[] = $e->getMessage();
@@ -116,7 +150,6 @@
         }
     }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -155,6 +188,10 @@
         background-color: #004080 !important;
         color: #fff;
     }
+    .fee-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
 </style>
 <body>
     <!-- Header -->
@@ -177,8 +214,60 @@
                         <li><?php echo htmlspecialchars($error); ?></li>
                     <?php endforeach; ?>
                 </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         <?php endif; ?>
+
+        <!-- Member Selection Form -->
+        <div class="card mb-4">
+            <div class="card-header bg-navy text-white">
+                <h4 class="mb-0"><i class="fas fa-user me-2"></i>Select Member</h4>
+            </div>
+            <div class="card-body">
+                <form id="memberLookupForm" class="row g-3 align-items-end">
+                    <div class="col-md-6">
+                        <label for="lookup_member_id" class="form-label">Member ID</label>
+                        <input type="text" class="form-control" id="lookup_member_id" placeholder="Enter Member ID">
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" id="lookupMemberBtn" class="btn btn-navy">
+                            <i class="fas fa-search me-2"></i>Look Up Fees
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Outstanding Fees Section -->
+        <div class="card mb-4" id="outstandingFeesCard" style="display: none;">
+            <div class="card-header bg-navy text-white">
+                <h4 class="mb-0"><i class="fas fa-list-alt me-2"></i>Outstanding Fees</h4>
+            </div>
+            <div class="card-body">
+                <div id="memberInfo" class="mb-3 pb-3 border-bottom"></div>
+                <div id="feesList" class="fee-list">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Fee Type</th>
+                                <th>Semester</th>
+                                <th>School Year</th>
+                                <th>Amount (₱)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feesTableBody">
+                            <!-- Fee rows will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-3">
+                    <button type="button" id="selectFeesBtn" class="btn btn-navy">
+                        <i class="fas fa-check-square me-2"></i>Pay Selected Fees
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <!-- Payment Form -->
         <div class="card mb-4">
@@ -186,7 +275,7 @@
                 <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add Payments</h4>
             </div>
             <div class="card-body">
-                <form method="POST" action="add_payments.php" novalidate>
+                <form method="POST" action="add_payments.php" id="paymentForm" novalidate>
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="member_id" class="form-label">Member ID</label>
@@ -262,11 +351,19 @@
         });
 
         document.addEventListener("click", function(event) {
-            if (event.target.classList.contains("remove-payment")) {
-                event.target.closest(".payment-entry").remove();
+            if (event.target.classList.contains("remove-payment") || 
+                event.target.parentElement.classList.contains("remove-payment")) {
+                const paymentEntries = document.querySelectorAll(".payment-entry");
+                if (paymentEntries.length > 1) {
+                    event.target.closest(".payment-entry").remove();
+                } else {
+                    alert("You must have at least one payment entry.");
+                }
             }
         });
+
         document.addEventListener("DOMContentLoaded", function() {
+            // Auto-dismiss alerts after delay
             setTimeout(function() {
                 let alertBox = document.querySelector(".alert");
                 if (alertBox) {
@@ -274,9 +371,117 @@
                     alertBox.style.opacity = "0";
                     setTimeout(() => alertBox.style.display = "none", 500);
                 }
-            }, 2000); // 2 seconds delay
+            }, 2500); // 2.5 seconds delay
+
+            // Member lookup functionality
+            document.getElementById("lookupMemberBtn").addEventListener("click", function() {
+                const memberId = document.getElementById("lookup_member_id").value.trim();
+                if (!memberId) {
+                    alert("Please enter a Member ID");
+                    return;
+                }
+
+                // Set the member ID in the payment form
+                document.getElementById("member_id").value = memberId;
+
+                // AJAX call to get member fees
+                fetch(`get_member_fees.php?member_id=${memberId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                            return;
+                        }
+
+                        // Display member info
+                        document.getElementById("memberInfo").innerHTML = `
+                            <h5>Member: ${data.member_name} (ID: ${data.member_id})</h5>
+                        `;
+
+                        // Clear existing fee rows
+                        const feesTableBody = document.getElementById("feesTableBody");
+                        feesTableBody.innerHTML = "";
+
+                        // Add fee rows
+                        if (data.fees.length === 0) {
+                            feesTableBody.innerHTML = `<tr><td colspan="5" class="text-center">No outstanding fees found</td></tr>`;
+                        } else {
+                            data.fees.forEach(fee => {
+                                feesTableBody.innerHTML += `
+                                    <tr>
+                                        <td><input type="checkbox" class="fee-checkbox" 
+                                            data-fee-id="${fee.fee_type}" 
+                                            data-amount="${fee.fee_amount}" 
+                                            data-semester="${fee.semester}" 
+                                            data-school-year="${fee.school_year}"></td>
+                                        <td>${fee.fee_type}</td>
+                                        <td>${fee.semester}</td>
+                                        <td>${fee.school_year}</td>
+                                        <td>₱${fee.fee_amount}</td>
+                                    </tr>
+                                `;
+                            });
+                        }
+
+                        // Show fees section
+                        document.getElementById("outstandingFeesCard").style.display = "block";
+                    })
+                    .catch(error => {
+                        console.error("Error fetching fees:", error);
+                        alert("Error fetching member fees. Please try again.");
+                    });
+            });
+
+            // Handle selecting fees for payment
+            document.getElementById("selectFeesBtn").addEventListener("click", function() {
+                const selectedFees = document.querySelectorAll(".fee-checkbox:checked");
+                
+                if (selectedFees.length === 0) {
+                    alert("Please select at least one fee to pay");
+                    return;
+                }
+
+                // Clear existing payment fields
+                const paymentFields = document.getElementById("paymentFields");
+                paymentFields.innerHTML = "";
+
+                // Add payment entries for each selected fee
+                selectedFees.forEach((checkbox, index) => {
+                    const amount = checkbox.getAttribute("data-amount");
+                    const semester = checkbox.getAttribute("data-semester");
+                    const schoolYear = checkbox.getAttribute("data-school-year");
+
+                    const newEntry = document.createElement("div");
+                    newEntry.classList.add("payment-entry", "row", "mb-3");
+                    newEntry.innerHTML = `
+                        <div class="col-md-3">
+                            <label class="form-label">Payment Amount (₱)</label>
+                            <input type="number" class="form-control" name="amount[]" min="0" step="0.01" value="${amount}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Semester</label>
+                            <select class="form-select" name="semester[]" required>
+                                <option value="1st Semester" ${semester === '1st Semester' ? 'selected' : ''}>1st Semester</option>
+                                <option value="2nd Semester" ${semester === '2nd Semester' ? 'selected' : ''}>2nd Semester</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">School Year</label>
+                            <input type="text" class="form-control" name="school_year[]" value="${schoolYear}" required>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-danger remove-payment"><i class="fas fa-trash"></i></button>
+                        </div>
+                    `;
+                    paymentFields.appendChild(newEntry);
+                });
+
+                // Scroll to payment form
+                document.getElementById("paymentForm").scrollIntoView({ behavior: 'smooth' });
+            });
         });
     </script>
+
     <!-- Include footer -->
     <?php include('footer.php'); ?>
 </body>

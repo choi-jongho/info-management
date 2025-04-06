@@ -450,13 +450,15 @@
         });
         document.addEventListener("DOMContentLoaded", function() {
             setTimeout(function() {
-                let alertBox = document.querySelector(".alert");
-                if (alertBox) {
+                let alertBoxes = document.querySelectorAll(".alert"); // Select all alerts
+                
+                alertBoxes.forEach(alertBox => { // Loop through each alert
                     alertBox.style.transition = "opacity 0.5s";
                     alertBox.style.opacity = "0";
                     setTimeout(() => alertBox.style.display = "none", 500);
-                }
-            }, 2500); // 2 seconds delay
+                });
+
+            }, 2500); // 2.5 seconds delay
         });
     </script>
 </body>

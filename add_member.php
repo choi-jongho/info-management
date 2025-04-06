@@ -129,6 +129,10 @@
                 $member_id = cleanInput($sheet->getCell('A'.$row)->getValue());
                 $last_name = cleanInput($sheet->getCell('B'.$row)->getValue());
                 $first_name = cleanInput($sheet->getCell('C'.$row)->getValue());
+                $middle_name = cleanInput($sheet->getCell('D'.$row)->getValue());
+                $contact_num = cleanInput($sheet->getCell('E'.$row)->getValue());
+                $email = cleanInput($sheet->getCell('F'.$row)->getValue());
+                $status = strtolower(cleanInput($sheet->getCell('G'.$row)->getValue()));
     
                 if (empty($member_id) || empty($last_name) || empty($first_name)) {
                     $results['errors']++;
@@ -150,8 +154,8 @@
                 $stmt->close();
     
                 // Insert member
-                $stmt = $conn->prepare("INSERT INTO members (member_id, last_name, first_name) VALUES (?, ?, ?)");
-                $stmt->bind_param("sss", $member_id, $last_name, $first_name);
+                $stmt = $conn->prepare("INSERT INTO members (member_id, last_name, first_name, middle_name, contact_num, email, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("sssssss", $member_id, $last_name, $first_name, $middle_name, $contact_num, $email, $status);
     
                 if ($stmt->execute()) {
                     log_activity("Import Member", "Imported member: $first_name $last_name (ID: $member_id)", $officer_id);
