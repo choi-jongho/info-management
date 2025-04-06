@@ -61,10 +61,10 @@
         
                     if ($stmt->execute()) {
                         $conn->commit(); // Commit transaction
+                        log_activity("Add Fees", "Added fee: $fee_type (₱$fee_amount) for Semester: $semester, SY: $school_year", $officer_id);
                         $_SESSION['success_message'] = "Fees added successfully for eligible members!";
                         header("Location: members.php");
                         exit();
-                        log_activity("Add Fees", "Added fee: $fee_type (₱$fee_amount) for Semester: $semester, SY: $school_year", $officer_id);
                     } else {
                         throw new Exception("Error adding fees: " . $stmt->error);
                     }
@@ -170,7 +170,7 @@
 
                     <div class="col-md-3">
                         <label for="fee_type" class="form-label required-field">Fee Type</label>
-                        <input type="text" class="form-control" id="fee_type" name="fee_type" placeholder="Intel Fee" required>
+                        <input type="text" class="form-control" id="fee_type" name="fee_type" placeholder="INTEL FEE" required>
                     </div>
 
                     <div class="col-md-3">
@@ -215,7 +215,7 @@
                     alertBox.style.opacity = "0";
                     setTimeout(() => alertBox.style.display = "none", 500);
                 }
-            }, 2000); // 2 seconds delay
+            }, 2500); // 2 seconds delay
         });
     </script>
     

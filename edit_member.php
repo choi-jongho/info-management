@@ -39,12 +39,12 @@
 
     // Get fee-related data from the `fees` table
     $stmt = $conn->prepare("
-    SELECT 
-        COALESCE(SUM(f.fee_amount), 0) AS total_fee_amount,
-        COUNT(DISTINCT f.semester) AS semester_count,
-        COUNT(DISTINCT f.school_year) AS school_year_count
-    FROM fees f
-    WHERE f.member_id = ?
+        SELECT 
+            COALESCE(SUM(f.fee_amount), 0) AS total_fee_amount,
+            COUNT(DISTINCT f.semester) AS semester_count,
+            COUNT(DISTINCT f.school_year) AS school_year_count
+        FROM fees f
+        WHERE f.member_id = ?
     ");
     $stmt->bind_param("s", $member_id);
     $stmt->execute();
@@ -66,13 +66,10 @@
         $contact_num = sanitize_input($_POST['contact_num'] ?? '');
         $email = sanitize_input($_POST['email'] ?? '');
         $status = sanitize_input($_POST['status'] ?? '');
-        $balance = sanitize_input($_POST['balance'] ?? '');
-        $semester = sanitize_input($_POST['semester'] ?? '');
         $balance = sanitize_input($_POST['balance'] ?? '0');
         $semester_count = sanitize_input($_POST['semester_count'] ?? '1');
         $school_year_count = sanitize_input($_POST['school_year_count'] ?? '1');
     
-        
         // Perform validation
         if (empty($last_name)) {
             $errors[] = "Last name is required";
@@ -117,20 +114,33 @@
                 if ($stmt->execute()) {
                     $stmt->close();
         
-                    // Update balance and semester in the fees table
+                    // Fetch existing fee amount before update
+                    $stmt = $conn->prepare("SELECT fee_amount FROM fees WHERE member_id = ?");
+                    $stmt->bind_param("s", $member_id);
+                    $stmt->execute();
+                    $stmt->bind_result($existing_fee_amount);
+                    $stmt->fetch();
+                    $stmt->close();
+
+                    // Ensure fee amount is preserved if not explicitly modified in the form
+                    $fee_amount = !empty($_POST['fee_amount']) && is_numeric($_POST['fee_amount']) ? $_POST['fee_amount'] : $existing_fee_amount;
+
+                    // Update fee details while keeping existing fee amount intact
                     $stmt = $conn->prepare("
-                    UPDATE fees 
-                    SET fee_amount = ?, semester = ?, school_year = ?
-                    WHERE member_id = ?
+                        UPDATE fees 
+                        SET fee_amount = ?, semester = ?, school_year = ? 
+                        WHERE member_id = ?
                     ");
-                    $stmt->bind_param("dsss", $balance, $semester_count, $school_year_count, $member_id);
-    
-        
+                    $stmt->bind_param("dsss", $fee_amount, $semester_count, $school_year_count, $member_id);
+
                     if ($stmt->execute()) {
                         $success = true;
-                        // Log both updates
                         $member_name = "$first_name $last_name";
                         log_activity('Update Member', "Updated member: $member_name (ID: $member_id)", $officer_id);
+                        $_SESSION['success_message'] = "Member information updated successfully!";
+                        // Redirect upon success
+                        header("Location: members.php");
+                        exit();
                     } else {
                         throw new Exception("Database error when updating fees: " . $stmt->error);
                     }
@@ -301,7 +311,7 @@
                     alertBox.style.opacity = "0";
                     setTimeout(() => alertBox.style.display = "none", 500);
                 }
-            }, 2000); // 2 seconds delay
+            }, 2500); // 2.5 seconds delay
         });
     </script>
 </body>

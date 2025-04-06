@@ -207,6 +207,13 @@
             </div>
             <?php unset($_SESSION['success_message']); ?>
         <?php endif; ?>
+        <?php if (!empty($_SESSION['warning_message'])): ?>
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-circle"></i>
+                <?php echo $_SESSION['warning_message']; ?>
+                <?php unset($_SESSION['warning_message']); ?>
+            </div>
+        <?php endif; ?>
 
         <div class="row align-items-center mb-4">
             <!-- If NOT President or Treasurer, align search bar with filters -->
@@ -449,7 +456,7 @@
                     alertBox.style.opacity = "0";
                     setTimeout(() => alertBox.style.display = "none", 500);
                 }
-            }, 2000); // 2 seconds delay
+            }, 2500); // 2 seconds delay
         });
     </script>
 </body>

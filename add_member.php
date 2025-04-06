@@ -117,67 +117,60 @@
 
     function processExcelFile($filePath) {
         global $conn, $officer_id;
-        $results = ['success' => 0, 'errors' => 0];
-        
+        $results = ['success' => 0, 'errors' => 0, 'duplicates' => 0]; // Track duplicates
+        $duplicateMembers = [];
+    
         try {
             $spreadsheet = IOFactory::load($filePath);
             $sheet = $spreadsheet->getActiveSheet();
-            
-            // Get highest row and column
             $highestRow = $sheet->getHighestRow();
-            
-            // Skip header row (starting from row 2)
+    
             for ($row = 2; $row <= $highestRow; $row++) {
-                // Read cell values directly
                 $member_id = cleanInput($sheet->getCell('A'.$row)->getValue());
                 $last_name = cleanInput($sheet->getCell('B'.$row)->getValue());
                 $first_name = cleanInput($sheet->getCell('C'.$row)->getValue());
-                $middle_name = cleanInput($sheet->getCell('D'.$row)->getValue());
-                $contact_num = cleanInput($sheet->getCell('E'.$row)->getValue());
-                $email = cleanInput($sheet->getCell('F'.$row)->getValue());
-                $status = strtolower(cleanInput($sheet->getCell('G'.$row)->getValue()));
-
-                // CRITICAL: Skip rows with empty or invalid required fields
+    
                 if (empty($member_id) || empty($last_name) || empty($first_name)) {
                     $results['errors']++;
                     continue;
                 }
-
-                // Check if member_id already exists
-                $check_query = "SELECT member_id FROM members WHERE member_id = ?";
-                $stmt = $conn->prepare($check_query);
+    
+                // Check if member already exists
+                $stmt = $conn->prepare("SELECT member_id FROM members WHERE member_id = ?");
                 $stmt->bind_param("s", $member_id);
                 $stmt->execute();
                 $check_result = $stmt->get_result();
+    
                 if ($check_result->num_rows > 0) {
-                    $results['errors']++;
+                    $results['duplicates']++;
+                    $duplicateMembers[] = "$first_name $last_name (ID: $member_id)";
                     $stmt->close();
-                    continue; // Skip duplicate entries
+                    continue; // Skip duplicate
                 }
                 $stmt->close();
-
-                // Use prepared statement for insertion to avoid SQL injection and handle special characters
-                $sql = "INSERT INTO members (member_id, last_name, first_name, middle_name, contact_num, email, status) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)";
-                
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("sssssss", $member_id, $last_name, $first_name, $middle_name, $contact_num, $email, $status);
-                
+    
+                // Insert member
+                $stmt = $conn->prepare("INSERT INTO members (member_id, last_name, first_name) VALUES (?, ?, ?)");
+                $stmt->bind_param("sss", $member_id, $last_name, $first_name);
+    
                 if ($stmt->execute()) {
-                    // Log successful import
-                    $member_name = "$first_name $last_name";
-                    log_activity("Import Member", "Imported member: $member_name (ID: $member_id)", $officer_id);
+                    log_activity("Import Member", "Imported member: $first_name $last_name (ID: $member_id)", $officer_id);
                     $results['success']++;
                 } else {
                     $results['errors']++;
                 }
                 $stmt->close();
             }
+    
+            // Set session message for duplicates
+            if ($results['duplicates'] > 0) {
+                $_SESSION['warning_message'] = "{$results['duplicates']} members were already in the system and skipped: <br>" . implode("<br>", $duplicateMembers);
+            }
+    
         } catch (Exception $e) {
-            $results['errors']++;
             $_SESSION['error_message'] = "Error processing Excel file: " . $e->getMessage();
         }
-
+    
         return $results;
     }
 
@@ -365,7 +358,7 @@
                     alertBox.style.opacity = "0";
                     setTimeout(() => alertBox.style.display = "none", 500);
                 }
-            }, 2000); // 2 seconds delay
+            }, 2500); // 2.5 seconds delay
         });
     </script>
 </body>

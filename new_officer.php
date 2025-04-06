@@ -233,7 +233,7 @@
                     alertBox.style.opacity = "0";
                     setTimeout(() => alertBox.style.display = "none", 500);
                 }
-            }, 2000); // 2 seconds delay
+            }, 2500); // 2.5 seconds delay
         });
 
     setupPasswordToggle("signup_password", "togglePassword");
