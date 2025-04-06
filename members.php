@@ -2,15 +2,15 @@
     // Start session
     session_start();
     $officer_id = $_SESSION['officer_id'] ?? null;
-    
+
     if (!$officer_id) {
         header("Location: login.php");
         exit();
     }
-    
+
     // Include database connection
     require_once('database.php');
-    
+
     // Fetch officer's role dynamically
     $stmt = $conn->prepare("
         SELECT r.role_id 
@@ -21,80 +21,93 @@
     $stmt->bind_param("s", $officer_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    
+
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         $_SESSION['officer_role'] = $row['role_id'];  // Store role in session
     } else {
         $_SESSION['officer_role'] = 'intel_member';  // Default role if not found
     }
-    
+
     $stmt->close();
-    
+
     // Include database connection
     include('database.php');
 
     // Get search parameters
-    $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-    $status_filter = isset($_GET['status']) ? $conn->real_escape_string($_GET['status']) : '';
-    
+    $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+    $status_filter = isset($_GET['status']) ? trim($_GET['status']) : '';
+
     // Pagination parameters
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $records_per_page = 10;
     $offset = ($page - 1) * $records_per_page;
-    
-    // Build the query with a JOIN to include fee_amount and semester
-    $query = "SELECT 
-        m.member_id, 
-        m.first_name, 
-        m.last_name, 
-        m.email, 
-        m.contact_num, 
-        m.status, 
-        COALESCE(SUM(f.fee_amount), 0) AS total_fee_amount, 
-        COUNT(f.semester) AS semester_count
-    FROM members m
-    LEFT JOIN fees f ON m.member_id = f.member_id
-    WHERE 1=1";
 
-    $count_query = "SELECT COUNT(DISTINCT m.member_id) as total 
-            FROM members m
-            LEFT JOIN fees f ON m.member_id = f.member_id
+    // Build the base query with secure filtering
+    $query = "SELECT m.*, 
+            (SELECT COALESCE(SUM(f.fee_amount), 0) FROM fees f WHERE f.member_id = m.member_id) AS total_fee_amount, 
+            (SELECT COALESCE(COUNT(f.semester), 0) FROM fees f WHERE f.member_id = m.member_id) AS semester_count 
+            FROM members m 
             WHERE 1=1";
 
-    // Apply filters
+    $count_query = "SELECT COUNT(DISTINCT m.member_id) as total 
+                    FROM members m 
+                    LEFT JOIN fees f ON m.member_id = f.member_id 
+                    WHERE 1=1";
+
+    // Apply search filters with prepared statements
     if (!empty($search)) {
-    $query .= " AND (m.member_id LIKE '%$search%' OR 
-                m.first_name LIKE '%$search%' OR 
-                m.last_name LIKE '%$search%' OR 
-                m.email LIKE '%$search%' OR 
-                m.contact_num LIKE '%$search%')";
-    $count_query .= " AND (m.member_id LIKE '%$search%' OR 
-                    m.first_name LIKE '%$search%' OR 
-                    m.last_name LIKE '%$search%' OR 
-                    m.email LIKE '%$search%' OR 
-                    m.contact_num LIKE '%$search%')";
+        $query .= " AND (m.member_id LIKE ? 
+                        OR m.first_name LIKE ? 
+                        OR m.last_name LIKE ? 
+                        OR m.email LIKE ? 
+                        OR m.contact_num LIKE ?)";
+        $count_query .= " AND (m.member_id LIKE ? 
+                            OR m.first_name LIKE ? 
+                            OR m.last_name LIKE ? 
+                            OR m.email LIKE ? 
+                            OR m.contact_num LIKE ?)";
     }
 
+    // Apply status filter
     if (!empty($status_filter)) {
-    $query .= " AND m.status = '$status_filter'";
-    $count_query .= " AND m.status = '$status_filter'";
+        $query .= " AND m.status = ?";
+        $count_query .= " AND m.status = ?";
     }
 
-    if (!empty($semester_filter)) {
-    $query .= " AND f.semester = '$semester_filter'";
-    $count_query .= " AND f.semester = '$semester_filter'";
-    }
-
-    // Group by member so each name appears only once
+    // Group results properly before pagination
     $query .= " GROUP BY m.member_id, m.first_name, m.last_name, m.email, m.contact_num, m.status";
+    $query .= " ORDER BY m.last_name ASC LIMIT ?, ?";
 
-    // Apply sorting and pagination
-    $query .= " ORDER BY m.last_name ASC LIMIT $offset, $records_per_page";
+    // Prepare main query statement
+    $stmt = $conn->prepare($query);
+    if (!empty($search) && !empty($status_filter)) {
+        $search_param = "%" . $search . "%";
+        $stmt->bind_param("ssssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $status_filter, $offset, $records_per_page);
+    } elseif (!empty($search)) {
+        $search_param = "%" . $search . "%";
+        $stmt->bind_param("sssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $offset, $records_per_page);
+    } elseif (!empty($status_filter)) {
+        $stmt->bind_param("sii", $status_filter, $offset, $records_per_page);
+    } else {
+        $stmt->bind_param("ii", $offset, $records_per_page);
+    }
 
-    // Execute queries
-    $result = $conn->query($query);
-    $count_result = $conn->query($count_query);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // Prepare count query statement
+    $count_stmt = $conn->prepare($count_query);
+    if (!empty($search) && !empty($status_filter)) {
+        $count_stmt->bind_param("ssssss", $search_param, $search_param, $search_param, $search_param, $search_param, $status_filter);
+    } elseif (!empty($search)) {
+        $count_stmt->bind_param("sssss", $search_param, $search_param, $search_param, $search_param, $search_param);
+    } elseif (!empty($status_filter)) {
+        $count_stmt->bind_param("s", $status_filter);
+    }
+
+    $count_stmt->execute();
+    $count_result = $count_stmt->get_result();
     $row_count = $count_result->fetch_assoc();
     $total_records = $row_count['total'];
     $total_pages = ceil($total_records / $records_per_page);
@@ -201,7 +214,7 @@
             <?php if (!in_array($_SESSION['officer_role'], ['intel_president', 'intel_treasurer'])): ?>
                 <div class="col-md-6">
                     <form class="d-flex justify-content-between" method="GET" action="">
-                        <input type="text" class="form-control me-2" placeholder="Search members..." name="search" value="<?php echo htmlspecialchars($search); ?>">
+                        <input type="text" id="searchBar" class="form-control me-2"  placeholder="Search members..." name="search" value="<?php echo htmlspecialchars($search); ?>">
                         <button type="submit" class="btn btn-navy">
                             <i class="fas fa-search"></i>
                         </button>
@@ -220,7 +233,7 @@
                 
                 <div class="col-md-6 mt-md-0 mt-3 search-bar">
                     <form class="d-flex" method="GET" action="">
-                        <input type="text" class="form-control me-2" placeholder="Search members..." name="search" value="<?php echo htmlspecialchars($search); ?>">
+                        <input type="text" class="form-control me-2" id="searchBar" placeholder="Search members..." name="search" value="<?php echo htmlspecialchars($search); ?>">
                         <button type="submit" class="btn btn-navy">
                             <i class="fas fa-search"></i>
                         </button>
@@ -269,7 +282,7 @@
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="membersTableBody">
                             <?php while($row = $result->fetch_assoc()): ?>
                                 <?php 
                                     // Generate a safe modal ID by removing special characters
@@ -402,7 +415,7 @@
                     </p>
                     <?php if(!empty($search) || !empty($status_filter) || !empty($semester_filter)): ?>
                         <a href="members.php" class="btn btn-secondary mt-3">
-                            <i class="fas fa-sync-alt me-2"></i>Reset All Filter
+                            <i class="fas fa-sync-alt"></i>Reset All Filter
                         </a>
                     <?php endif; ?>
                 </div>
@@ -415,5 +428,21 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#searchBar").on("keyup", function() {
+                var query = $(this).val();
+                $.ajax({
+                    url: "fetch_members.php",
+                    method: "GET",
+                    data: { search: query },
+                    success: function(response) {
+                        $("#membersTableBody").html(response); // Update table dynamically
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

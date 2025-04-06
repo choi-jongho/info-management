@@ -135,9 +135,9 @@
             color: #ffffff !important;
         }
         .btn-navy {
-            background-color: #001f3f;
-            border-color: #001f3f;
-            color: #fff;
+            background-color: #001f3f !important;
+            border-color: #001f3f !important;
+            color: #fff !important;
         }
         .btn-navy:hover {
             background-color: #003366;
@@ -197,7 +197,7 @@
             <!-- Search Bar -->
             <form method="GET" action="" class="m-3">
                 <div class="input-group">
-                    <input type="text" class="form-control" name="search" placeholder="Search payments..." value="<?php echo htmlspecialchars($search_query); ?>">
+                    <input type="text" class="form-control me-2" id="searchBar" placeholder="Search payments..." name="search" value="<?php echo htmlspecialchars($search_query); ?>">
                     <button type="submit" class="btn btn-navy"><i class="fas fa-search"></i> Search</button>
                 </div>
             </form>
@@ -213,16 +213,30 @@
                                 <th>Payment Date</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <?php while ($payment = $payments_result->fetch_assoc()): ?>
+                        <tbody id="paymentTableBody">
+                            <?php if ($total_payments > 0): ?> 
+                                <?php if ($payments_result->num_rows > 0): ?>
+                                    <?php while ($payment = $payments_result->fetch_assoc()): ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($payment['payment_id']); ?></td>
+                                            <td><?php echo htmlspecialchars($payment['first_name'] . ' ' . $payment['last_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($payment['member_id']); ?></td>
+                                            <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
+                                            <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                <?php else: ?>
+                                    <!-- Display 'No results found' when no matches for search -->
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No results found</td>
+                                    </tr>
+                                <?php endif; ?>
+                            <?php else: ?>
+                                <!-- Display 'No payments found' if there are no payments at all -->
                                 <tr>
-                                    <td><?php echo htmlspecialchars($payment['payment_id']); ?></td>
-                                    <td><?php echo htmlspecialchars($payment['first_name'] . ' ' . $payment['last_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($payment['member_id']); ?></td>
-                                    <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
-                                    <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
+                                    <td colspan="5" class="text-center text-muted">No payments found</td>
                                 </tr>
-                            <?php endwhile; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>    
                 </div>
@@ -269,5 +283,21 @@
 
     <!-- Bootstrap JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function(){
+            $("#searchBar").on("keyup", function() {
+                var query = $(this).val();
+                $.ajax({
+                    url: "fetch_payments.php",
+                    method: "GET",
+                    data: { search: query },
+                    success: function(response) {
+                        $("#paymentTableBody").html(response); // Update table dynamically
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

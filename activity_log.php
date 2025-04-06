@@ -66,6 +66,11 @@
         .bg-navy {
             background-color: #001f3f !important;
         }
+        .btn-navy {
+            background-color: #001f3f !important;
+            border-color: #001f3f !important;
+            color: #fff !important;
+        }
         .table-container {
             background-color: #ffffff;
             border-radius: 10px;
@@ -89,7 +94,7 @@
             <!-- Search Bar -->
             <form method="GET" action="" class="mb-3">
                 <div class="input-group">
-                    <input type="text" class="form-control" name="search" placeholder="Search logs..." value="<?php echo htmlspecialchars($search_query); ?>">
+                    <input type="text" class="form-control me-2" id="searchBar" name="search" placeholder="Search logs..." value="<?php echo htmlspecialchars($search_query); ?>">
                     <button type="submit" class="btn btn-navy"><i class="fas fa-search"></i> Search</button>
                 </div>
             </form>
@@ -106,7 +111,7 @@
                             <th>Timestamp</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="logsTableBody">
                         <?php while ($log = $result->fetch_assoc()): ?>
                             <tr>
                                 <td><?php echo htmlspecialchars($log['log_id']); ?></td>
@@ -160,5 +165,21 @@
     <?php include('footer.php'); ?>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#searchBar").on("keyup", function() {
+                var query = $(this).val();
+                $.ajax({
+                    url: "fetch_logs.php",
+                    method: "GET",
+                    data: { search: query },
+                    success: function(response) {
+                        $("#logsTableBody").html(response); // Update table dynamically
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

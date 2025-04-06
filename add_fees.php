@@ -130,6 +130,11 @@
             padding: 30px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
+        .required-field::after {
+            content: "*";
+            color: red;
+            margin-left: 4px;
+        } 
     </style>
 </head>
 <body>
@@ -162,12 +167,12 @@
                 <form method="POST" action="" class="row g-3">
 
                     <div class="col-md-3">
-                        <label for="fee_type" class="form-label">Fee Type *</label>
+                        <label for="fee_type" class="form-label required-field">Fee Type</label>
                         <input type="text" class="form-control" id="fee_type" name="fee_type" placeholder="Intel Fee" required>
                     </div>
 
                     <div class="col-md-3">
-                        <label for="fee_amount" class="form-label">Fee Amount *</label>
+                        <label for="fee_amount" class="form-label required-field">Fee Amount</label>
                         <div class="input-group">
                             <span class="input-group-text">₱</span>
                             <input type="number" class="form-control" id="fee_amount" name="fee_amount" min="0" step="0.01" required>
@@ -175,7 +180,7 @@
                     </div>
                     
                     <div class="col-md-3">
-                        <label for="semester" class="form-label">Semester *</label>
+                        <label for="semester" class="form-label required-field">Semester</label>
                         <select class="form-select" id="semester" name="semester" required>
                             <option value="1st Semester">1st Semester</option>
                             <option value="2nd Semester">2nd Semester</option>
@@ -183,7 +188,7 @@
                     </div>
 
                     <div class="col-md-3">
-                        <label for="school_year" class="form-label">School Year *</label>
+                        <label for="school_year" class="form-label required-field">School Year</label>
                         <input type="text" class="form-control" id="school_year" name="school_year" placeholder="2024-2025" required>
                     </div>
 

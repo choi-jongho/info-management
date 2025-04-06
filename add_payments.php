@@ -92,7 +92,7 @@
 
                             if ($stmt->execute()) {
                                 log_activity("Add Payment", "Payment of ₱$amount added for Member: $member_name (ID: $member_id), Semester: $semester, SY: $school_year", $officer_id);
-                                log_activity("Delete Fee", "Deleted fee for Semester: $semester, SY: $school_year", $officer_id);
+                                log_activity("Delete Fee", "Deleted fee for Member: $member_name (ID: $member_id), Semester: $semester, SY: $school_year", $officer_id);
                             } else {
                                 throw new Exception("Failed to delete fee record.");
                             }
