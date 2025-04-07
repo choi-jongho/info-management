@@ -6,6 +6,7 @@
         header("Location: members.php");
         exit();
     }
+
     
     $receipt = $_SESSION['receipt_data'];
     $receipt_id = $receipt['receipt_id'] ?? uniqid('RCPT');
@@ -198,7 +199,7 @@
             <div>
                 <div class="signature-line">
                     <?php echo $receipt['officer_name']; ?><br>
-                    Officer Signature
+                    <?php echo $receipt['officer_role'] ?? 'Officer'; ?> Signature
                 </div>
             </div>
         </div>

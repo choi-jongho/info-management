@@ -14,8 +14,9 @@
 
     // Fetch officer role dynamically from database
     $stmt = $conn->prepare("
-        SELECT r.role_id 
+        SELECT r.role_id, r.role_name, m.first_name, m.last_name 
         FROM officers o 
+        JOIN members m ON o.member_id = m.member_id 
         JOIN role r ON o.role_id = r.role_id 
         WHERE o.officer_id = ?
     ");
@@ -25,9 +26,13 @@
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        $_SESSION['officer_role'] = $row['role_id'];  // Store role in session
+        $_SESSION['officer_role'] = $row['role_id'];  // Store role ID in session
+        $_SESSION['role_id'] = $row['role_id'];      // Also store as role_id for consistency
+        $_SESSION['role_name'] = $row['role_name'];  // Store role name too
+        $_SESSION['name'] = $row['first_name'] . ' ' . $row['last_name']; // Store role name for display
     } else {
-        $_SESSION['officer_role'] = 'intel_member';  // Default role
+        $_SESSION['officer_role'] = 'intel_member';  // Default role if not found
+        $_SESSION['role_id'] = 'intel_member';       // Match the keys
     }
 
     $stmt->close();

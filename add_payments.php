@@ -140,6 +140,21 @@
                 $officer = $result->fetch_assoc();
                 $_SESSION['receipt_data']['officer_name'] = $officer['officer_name'];
                 $stmt->close();
+
+                // Add this code to fetch the role name
+                $stmt = $conn->prepare("
+                    SELECT r.role_name 
+                    FROM officers o
+                    JOIN role r ON o.role_id = r.role_id
+                    WHERE o.officer_id = ?
+                ");
+                $stmt->bind_param("s", $officer_id); // Use the officer_id variable here
+                $stmt->execute();
+                $role_result = $stmt->get_result();
+                $role_row = $role_result->fetch_assoc();
+                $role_name = $role_row['role_name'] ?? 'Officer'; // Default to 'Officer' if no role found
+                $_SESSION['receipt_data']['officer_role'] = $role_name; // Add role name to receipt data
+                $stmt->close();
                 
                 header("Location: payment_receipt.php");
                 exit(); // Redirect to receipt page

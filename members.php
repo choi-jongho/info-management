@@ -8,13 +8,14 @@
         exit();
     }
 
-    // Include database connection
+    // Include database connection (only once)
     require_once('database.php');
 
     // Fetch officer's role dynamically
     $stmt = $conn->prepare("
-        SELECT r.role_id 
+        SELECT r.role_id, r.role_name, m.first_name, m.last_name 
         FROM officers o 
+        JOIN members m ON o.member_id = m.member_id 
         JOIN role r ON o.role_id = r.role_id 
         WHERE o.officer_id = ?
     ");
@@ -24,15 +25,16 @@
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        $_SESSION['officer_role'] = $row['role_id'];  // Store role in session
+        $_SESSION['officer_role'] = $row['role_id'];  // Store role ID in session
+        $_SESSION['role_id'] = $row['role_id'];      // Also store as role_id for consistency
+        $_SESSION['role_name'] = $row['role_name'];  // Store role name too
+        $_SESSION['name'] = $row['first_name'] . ' ' . $row['last_name']; // Store role name for display
     } else {
         $_SESSION['officer_role'] = 'intel_member';  // Default role if not found
+        $_SESSION['role_id'] = 'intel_member';       // Match the keys
     }
 
     $stmt->close();
-
-    // Include database connection
-    include('database.php');
 
     // Get search parameters
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -55,8 +57,13 @@
                     LEFT JOIN fees f ON m.member_id = f.member_id 
                     WHERE 1=1";
 
+    // Parameters array for binding
+    $params = array();
+    $types = "";
+
     // Apply search filters with prepared statements
     if (!empty($search)) {
+        $search_param = "%" . $search . "%";
         $query .= " AND (m.member_id LIKE ? 
                         OR m.first_name LIKE ? 
                         OR m.last_name LIKE ? 
@@ -67,50 +74,91 @@
                             OR m.last_name LIKE ? 
                             OR m.email LIKE ? 
                             OR m.contact_num LIKE ?)";
+        
+        // Add parameters 5 times for each LIKE condition
+        $types .= "sssss";
+        $params[] = $search_param;
+        $params[] = $search_param;
+        $params[] = $search_param;
+        $params[] = $search_param;
+        $params[] = $search_param;
     }
 
     // Apply status filter
     if (!empty($status_filter)) {
         $query .= " AND m.status = ?";
         $count_query .= " AND m.status = ?";
+        $types .= "s";
+        $params[] = $status_filter;
     }
 
     // Group results properly before pagination
     $query .= " GROUP BY m.member_id, m.first_name, m.last_name, m.email, m.contact_num, m.status";
     $query .= " ORDER BY m.last_name ASC LIMIT ?, ?";
 
+    // Add pagination parameters
+    $types .= "ii";
+    $params[] = $offset;
+    $params[] = $records_per_page;
+
     // Prepare main query statement
     $stmt = $conn->prepare($query);
-    if (!empty($search) && !empty($status_filter)) {
-        $search_param = "%" . $search . "%";
-        $stmt->bind_param("ssssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $status_filter, $offset, $records_per_page);
-    } elseif (!empty($search)) {
-        $search_param = "%" . $search . "%";
-        $stmt->bind_param("sssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $offset, $records_per_page);
-    } elseif (!empty($status_filter)) {
-        $stmt->bind_param("sii", $status_filter, $offset, $records_per_page);
-    } else {
-        $stmt->bind_param("ii", $offset, $records_per_page);
+    
+    // Bind parameters dynamically
+    if (!empty($params)) {
+        // Create a reference array to pass to bind_param
+        $bind_params = array();
+        $bind_params[] = $types; // First parameter is the types string
+        
+        // Add references to each parameter
+        for ($i = 0; $i < count($params); $i++) {
+            $bind_params[] = &$params[$i];
+        }
+        
+        // Call bind_param with the unpacked array
+        call_user_func_array(array($stmt, 'bind_param'), $bind_params);
     }
 
-    $stmt->execute();
-    $result = $stmt->get_result();
+    // Try/catch to catch any execution errors
+    try {
+        $stmt->execute();
+        $result = $stmt->get_result();
+    } catch (Exception $e) {
+        echo "Error executing query: " . $e->getMessage();
+        exit;
+    }
 
     // Prepare count query statement
     $count_stmt = $conn->prepare($count_query);
-    if (!empty($search) && !empty($status_filter)) {
-        $count_stmt->bind_param("ssssss", $search_param, $search_param, $search_param, $search_param, $search_param, $status_filter);
-    } elseif (!empty($search)) {
-        $count_stmt->bind_param("sssss", $search_param, $search_param, $search_param, $search_param, $search_param);
-    } elseif (!empty($status_filter)) {
-        $count_stmt->bind_param("s", $status_filter);
+    
+    // Bind parameters for count query (excluding pagination parameters)
+    if (!empty($search) || !empty($status_filter)) {
+        $count_types = substr($types, 0, -2); // Remove the last two 'ii' for pagination
+        $count_params = array_slice($params, 0, -2); // Remove offset and limit
+        
+        if (!empty($count_params)) {
+            $bind_count_params = array();
+            $bind_count_params[] = $count_types;
+            
+            for ($i = 0; $i < count($count_params); $i++) {
+                $bind_count_params[] = &$count_params[$i];
+            }
+            
+            call_user_func_array(array($count_stmt, 'bind_param'), $bind_count_params);
+        }
     }
 
-    $count_stmt->execute();
-    $count_result = $count_stmt->get_result();
-    $row_count = $count_result->fetch_assoc();
-    $total_records = $row_count['total'];
-    $total_pages = ceil($total_records / $records_per_page);
+    // Try/catch for count query
+    try {
+        $count_stmt->execute();
+        $count_result = $count_stmt->get_result();
+        $row_count = $count_result->fetch_assoc();
+        $total_records = $row_count['total'];
+        $total_pages = ceil($total_records / $records_per_page);
+    } catch (Exception $e) {
+        echo "Error executing count query: " . $e->getMessage();
+        exit;
+    }
 ?>
 
 <!DOCTYPE html>
@@ -443,7 +491,11 @@
                     method: "GET",
                     data: { search: query },
                     success: function(response) {
-                        $("#membersTableBody").html(response); // Update table dynamically
+                        $("#membersTableBody").html(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX Error: " + error);
+                        // Optionally show an error message to the user
                     }
                 });
             });

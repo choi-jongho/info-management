@@ -18,18 +18,20 @@
 
     $payment_id = sanitize_input($_GET['payment_id']);
 
-    // Get receipt data
+    // Get receipt details
     $stmt = $conn->prepare("
         SELECT r.*, 
-               m.first_name, 
-               m.last_name, 
-               o.officer_id,
-               om.first_name as officer_first_name, 
-               om.last_name as officer_last_name
+            m.first_name, 
+            m.last_name, 
+            o.officer_id,
+            om.first_name as officer_first_name, 
+            om.last_name as officer_last_name,
+            role.role_name  # Added this line to get role name
         FROM receipts r
         JOIN members m ON r.member_id = m.member_id
         JOIN officers o ON r.officer_id = o.officer_id
         JOIN members om ON o.member_id = om.member_id
+        LEFT JOIN role ON o.role_id = role.role_id  # Added this join for role info
         WHERE r.payment_id = ?
     ");
     $stmt->bind_param("s", $payment_id);
@@ -113,6 +115,7 @@
             'member_id' => $receipt['member_id'],
             'member_name' => $receipt['first_name'] . ' ' . $receipt['last_name'],
             'officer_name' => $receipt['officer_first_name'] . ' ' . $receipt['officer_last_name'],
+            'officer_role' => $receipt['role_name'] ?? 'Officer',
             'payments' => [
                 [
                     'payment_id' => $payment['payment_id'],

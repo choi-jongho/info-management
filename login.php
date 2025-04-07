@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
         $stmt = $conn->prepare("
             SELECT o.officer_id, o.username, o.password, m.member_id, r.role_id 
             FROM officers o
-            LEFT JOIN members m ON o.officer_id = m.member_id
+            LEFT JOIN members m ON o.member_id = m.member_id
             LEFT JOIN role r ON o.role_id = r.role_id
             WHERE o.username = ? OR o.officer_id = ? OR m.member_id = ? OR r.role_id = ?
           ");

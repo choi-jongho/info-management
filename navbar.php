@@ -9,7 +9,9 @@
 
     // Get session info for user display
     $user_name = $_SESSION['username'] ?? 'Admin';
-    $user_role = $_SESSION['role_id'] ?? 'Administrator';
+    $user_role_id = $_SESSION['role_id'] ?? ''; // Default to role ID 1 if not set
+    $role_name = $_SESSION['role_name'] ?? 'Admin'; // Default to 'Admin' if not set
+    $name = $_SESSION['name'] ?? 'Admin'; // Default to 'Admin' if not set
 ?>
 
 <!--- Navigation Bar --->
@@ -77,12 +79,13 @@
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-user-circle me-1"></i> <?php echo htmlspecialchars($user_role); ?>
+                        <i class="fas fa-user-circle me-1"></i> <?php echo htmlspecialchars($role_name); ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li class="dropdown-item-text text-muted ps-2">
                                 <small>Signed in as</small><br>
-                                <span class="fw-bold"><?php echo htmlspecialchars($user_name); ?></span>
+                                <span class="fw-bold"><?php echo htmlspecialchars($name); ?></span>
+                                <small class="d-block text-muted"><?php echo htmlspecialchars($role_name); ?></small>
                             </li>
 			                <li><hr class="dropdown-divider"></li>
 
