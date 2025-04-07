@@ -46,7 +46,8 @@
                 $stmt_check->close();
         
                 if ($existing_school_years < 2) {
-                    // Insert fee **ONLY IF** the same semester does not already exist in that school year
+                    // Insert fee ONLY IF the same semester does not already exist in that school year
+                    // AND the member is not an officer
                     $stmt = $conn->prepare("
                         INSERT INTO fees (member_id, fee_type, fee_amount, semester, school_year)
                         SELECT member_id, ?, ?, ?, ? FROM members
@@ -55,6 +56,9 @@
                             AND fees.school_year = ? 
                             AND fees.semester = ?
                         )
+                        AND NOT EXISTS (
+                            SELECT 1 FROM officers WHERE officers.member_id = members.member_id
+                        )
                     ");
         
                     $stmt->bind_param("sdssss", $fee_type, $fee_amount, $semester, $school_year, $school_year, $semester);
@@ -62,7 +66,7 @@
                     if ($stmt->execute()) {
                         $conn->commit(); // Commit transaction
                         log_activity("Add Fees", "Added fee: $fee_type (₱$fee_amount) for Semester: $semester, SY: $school_year", $officer_id);
-                        $_SESSION['success_message'] = "Fees added successfully for eligible members!";
+                        $_SESSION['success_message'] = "Fees added successfully for eligible non-officer members!";
                         header("Location: members.php");
                         exit();
                     } else {
@@ -153,7 +157,7 @@
     <main class="container my-5">
         <div class="card">
             <div class="card-header bg-navy text-white">
-                <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add Fees</h4>
+                <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add Fees (Non-Officers Only)</h4>
             </div>
 
             <div class="card-body form-container">
@@ -196,7 +200,7 @@
 
                     <div class="col-12 text-end">
                         <button type="submit" class="btn btn-navy">
-                            <i class="fas fa-plus me-2"></i>Add Fees to All Members
+                            <i class="fas fa-plus me-2"></i>Add Fees to Non-Officer Members
                         </button>
                     </div>
                 </form>

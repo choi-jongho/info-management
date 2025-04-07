@@ -83,7 +83,7 @@
         }
         .signature-line {
             width: 200px;
-            border-top: 1px solid #333;
+            border-top: 1.5px solid #333;
             margin-top: 10px;
             text-align: center;
             padding-top: 5px;
@@ -190,16 +190,14 @@
         </div>
         
         <div class="receipt-signature">
-            <div>
-                <div class="signature-line">
-                    <?php echo $receipt['member_name']; ?><br>
-                    Member Signature
-                </div>
+            <div class="signature-line">
+                <?php echo $receipt['member_name']; ?><br>
+                Member
             </div>
             <div>
                 <div class="signature-line">
                     <?php echo $receipt['officer_name']; ?><br>
-                    <?php echo $receipt['officer_role'] ?? 'Officer'; ?> Signature
+                    INTEL <?php echo $receipt['officer_role'] ?? 'Officer'; ?>
                 </div>
             </div>
         </div>
