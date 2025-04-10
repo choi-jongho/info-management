@@ -116,4 +116,81 @@ function log_activity($action, $description, $officer_id = 'system') {
         return false;
     }
 }
+
+    function delete_member($member_id, $officer_id) {
+        global $conn;
+
+        // Begin transaction
+        $conn->begin_transaction();
+
+        try {
+            // Get the member data before deletion
+            $stmt = $conn->prepare("SELECT * FROM members WHERE member_id = ?");
+            $stmt->bind_param("s", $member_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows === 0) {
+                $conn->rollback();
+                return false;  // Member not found
+            }
+
+            $member_data = $result->fetch_assoc();
+            $member_name = $member_data['first_name'] . ' ' . $member_data['last_name'];
+            $description = "Member {$member_name} (ID: {$member_id})";
+
+            // Fetch fee data before deletion
+            $fee_stmt = $conn->prepare("SELECT fee_type, fee_amount, semester, school_year, status FROM fees WHERE member_id = ?");
+            $fee_stmt->bind_param("s", $member_id);
+            $fee_stmt->execute();
+            $fee_result = $fee_stmt->get_result();
+
+            $fees = [];
+            while ($fee_row = $fee_result->fetch_assoc()) {
+                $fee_row['fee_type'] = strval($fee_row['fee_type']); // Ensure it's stored as a string
+                $fees[] = $fee_row;
+            }
+
+            // Attach fees to member data
+            $member_data['fees'] = $fees;
+            $json_data = json_encode($member_data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+            // Store in deleted_members table
+            $json_data = json_encode($member_data);
+            $store_stmt = $conn->prepare("
+                INSERT INTO deleted_members (member_id, description, member_data, deleted_by) 
+                VALUES (?, ?, ?, ?)
+            ");
+            $store_stmt->bind_param("ssss", $member_id, $description, $json_data, $officer_id);
+            $store_stmt->execute();
+
+            // Delete associated records in fees table
+            $delete_fees_stmt = $conn->prepare("DELETE FROM fees WHERE member_id = ?");
+            $delete_fees_stmt->bind_param("s", $member_id);
+            $delete_fees_stmt->execute();
+
+            // Delete from members table
+            $delete_stmt = $conn->prepare("DELETE FROM members WHERE member_id = ?");
+            $delete_stmt->bind_param("s", $member_id);
+            $delete_stmt->execute();
+
+            // Log the deletion
+            log_activity(
+                "Member Deletion", 
+                "{$description} (Deleted by officer: {$officer_id})",
+                $officer_id
+            );
+
+            $conn->commit();
+            return true;
+        } catch (Exception $e) {
+            $conn->rollback();
+            log_activity(
+                "Error", 
+                "Failed to delete member {$member_id}: " . $e->getMessage(),
+                $officer_id
+            );
+            return false;
+        }
+    }
 ?>

@@ -24,7 +24,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Receipt</title>
-    <link rel="icon" href="images/info-tech.png">
+    <link rel="icon" href="images/info-tech.svg">
     <style>
         .receipt-container {
             max-width: 800px;
@@ -212,21 +212,9 @@
             <button onclick="window.location.href='members.php'">Return to Members</button>
         </div>
     </div>
-    
-    <script>
-        // Automatically open print dialog when page loads
-        window.onload = function() {
-            // Small delay to ensure page is fully loaded
-            setTimeout(function() {
-                window.print();
-            }, 500);
-        };
-    </script>
 </body>
 </html>
 
 <?php
-    // Clear the receipt data after displaying
-    // Comment this out if you want to allow refreshing the page
-    // unset($_SESSION['receipt_data']);
+    unset($_SESSION['receipt_data']);
 ?>

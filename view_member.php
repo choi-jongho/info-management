@@ -15,7 +15,9 @@
         SELECT 
             m.*, 
             COALESCE(SUM(f.fee_amount), 0) AS total_fee_amount,
-            COUNT(f.semester) AS semester_count
+            COUNT(f.semester) AS semester_count,
+            COALESCE(SUM(CASE WHEN f.status = 'Unpaid' THEN f.fee_amount ELSE 0 END), 0) AS total_unpaid_fees,
+            COUNT(CASE WHEN f.status = 'Unpaid' THEN f.semester END) AS unpaid_semester_count
         FROM members m
         LEFT JOIN fees f ON m.member_id = f.member_id
         WHERE m.member_id = ?
@@ -54,7 +56,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="images/info-tech.png">
+    <link rel="icon" href="images/info-tech.svg">
 </head>
 <style>
         html, body {
@@ -163,9 +165,15 @@
                         <div class="mb-3 d-flex justify-content-between align-items-center">
                         <div>
                             <label class="fw-bold me-2">Balance:</label>
-                            <p class="<?php echo $member['total_fee_amount'] > 0 ? 'text-danger' : 'text-success'; ?>">
-                                <?php echo format_currency($member['total_fee_amount']); ?>
-                            </p>
+                            <div>
+                            <?php if ($member['total_unpaid_fees'] > 0): ?>
+                                <span class="text-danger">
+                                    ₱<?php echo number_format($member['total_unpaid_fees'], 2); ?>
+                                </span>
+                            <?php else: ?>
+                                <span class="text-success">₱0.00</span>
+                            <?php endif; ?>
+                            </div>
                         </div>
                             <a href="breakdown.php?id=<?php echo urlencode($member_id); ?>" class="btn btn-info ms-auto">
                                 <i class="fas fa-info-circle me-2"></i>View Breakdown
@@ -173,7 +181,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="fw-bold">Semester:</label>
-                            <p><?php echo htmlspecialchars($member['semester_count']); ?> semester(s)</p>
+                            <p><?php echo htmlspecialchars($member['unpaid_semester_count']); ?> semester(s)</p>
                         </div>
                     </div>
                 </div>

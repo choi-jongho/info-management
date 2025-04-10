@@ -10,6 +10,7 @@
 
     // Include database connection (only once)
     require_once('database.php');
+    require_once('functions.php');
 
     // Fetch officer's role dynamically
     $stmt = $conn->prepare("
@@ -36,6 +37,9 @@
 
     $stmt->close();
 
+    // Check and update member status based on fee payments
+    updateMemberStatuses();
+
     // Get search parameters
     $search = isset($_GET['search']) ? trim($_GET['search']) : '';
     $status_filter = isset($_GET['status']) ? trim($_GET['status']) : '';
@@ -45,10 +49,13 @@
     $records_per_page = 10;
     $offset = ($page - 1) * $records_per_page;
 
-    // Build the base query with secure filtering
+    // Build the base query with secure filtering and proper calculation of unpaid fees
     $query = "SELECT m.*, 
             (SELECT COALESCE(SUM(f.fee_amount), 0) FROM fees f WHERE f.member_id = m.member_id) AS total_fee_amount, 
-            (SELECT COALESCE(COUNT(f.semester), 0) FROM fees f WHERE f.member_id = m.member_id) AS semester_count 
+            (SELECT COALESCE(COUNT(f.semester), 0) FROM fees f WHERE f.member_id = m.member_id) AS semester_count,
+            (SELECT COUNT(DISTINCT semester) FROM fees) - (SELECT COUNT(DISTINCT semester) FROM fees WHERE member_id = m.member_id) AS missed_semesters,
+            (SELECT COALESCE(SUM(f.fee_amount), 0) FROM fees f WHERE f.member_id = m.member_id AND f.status = 'Unpaid') AS total_unpaid_fees,
+            (SELECT COUNT(f.semester) FROM fees f WHERE f.member_id = m.member_id AND f.status = 'Unpaid') AS unpaid_semester_count
             FROM members m 
             WHERE 1=1";
 
@@ -159,6 +166,127 @@
         echo "Error executing count query: " . $e->getMessage();
         exit;
     }
+
+    /**
+     * Function to mark members as inactive if they have 3 or more unpaid fees
+     * This checks the 'status' field in the fees table and counts fees with 'Unpaid' status
+     */
+    function updateMemberStatuses() {
+        global $conn; // Use the database connection
+        global $officer_id; // Get current officer ID for logging
+        
+        // Get all active members with their unpaid fees count
+        $stmt = $conn->prepare("
+            SELECT m.member_id, m.first_name, m.last_name,
+                (SELECT COUNT(*) FROM fees f WHERE f.member_id = m.member_id AND f.status = 'Unpaid') as unpaid_fees_count
+            FROM members m 
+            WHERE m.status = 'Active'
+        ");
+        
+        $stmt->execute();
+        $members_result = $stmt->get_result();
+        $updated_count = 0;
+        
+        // Process each active member
+        while ($member = $members_result->fetch_assoc()) {
+            $member_id = $member['member_id'];
+            $member_name = $member['first_name'] . ' ' . $member['last_name'];
+            $unpaid_fees_count = $member['unpaid_fees_count'];
+            
+            // If member has 3 or more unpaid fees, mark as inactive
+            if ($unpaid_fees_count >= 3) {
+                // Mark member as inactive
+                $update_stmt = $conn->prepare("
+                    UPDATE members 
+                    SET status = 'Inactive' 
+                    WHERE member_id = ?
+                ");
+                
+                $update_stmt->bind_param("s", $member_id);
+                $update_stmt->execute();
+                
+                // Log the status change in activity_log
+                log_activity(
+                    "Status Update", 
+                    "Member $member_name (ID: $member_id) marked as inactive due to having $unpaid_fees_count unpaid fees",
+                    $officer_id
+                );
+                
+                $updated_count++;
+                $update_stmt->close();
+            }
+        }
+        
+        $stmt->close();
+        
+        // Add status message to session if any members were updated
+        if ($updated_count > 0) {
+            $_SESSION['status_message'] = "Updated $updated_count members to inactive status due to having 3 or more unpaid fees.";
+            
+            // Log summary in activity log
+            log_activity(
+                "Batch Status Update", 
+                "Updated $updated_count members to inactive status due to having 3 or more unpaid fees",
+                $officer_id
+            );
+        }
+        
+        // Also check for inactive members who now have less than 3 unpaid fees
+        $stmt = $conn->prepare("
+            SELECT m.member_id, m.first_name, m.last_name,
+                (SELECT COUNT(*) FROM fees f WHERE f.member_id = m.member_id AND f.status = 'Unpaid') as unpaid_fees_count
+            FROM members m 
+            WHERE m.status = 'Inactive'
+        ");
+        
+        $stmt->execute();
+        $members_result = $stmt->get_result();
+        $reactivated_count = 0;
+        
+        // Process each inactive member
+        while ($member = $members_result->fetch_assoc()) {
+            $member_id = $member['member_id'];
+            $member_name = $member['first_name'] . ' ' . $member['last_name'];
+            $unpaid_fees_count = $member['unpaid_fees_count'];
+            
+            // If member has less than 3 unpaid fees, mark as active
+            if ($unpaid_fees_count < 3) {
+                // Mark member as active
+                $update_stmt = $conn->prepare("
+                    UPDATE members 
+                    SET status = 'Active' 
+                    WHERE member_id = ?
+                ");
+                
+                $update_stmt->bind_param("s", $member_id);
+                $update_stmt->execute();
+                
+                // Log the status change in activity_log
+                log_activity(
+                    "Status Update", 
+                    "Member $member_name (ID: $member_id) marked as active due to having less than 3 unpaid fees",
+                    $officer_id
+                );
+                
+                $reactivated_count++;
+                $update_stmt->close();
+            }
+        }
+        
+        $stmt->close();
+        
+        // Add status message to session if any members were reactivated
+        if ($reactivated_count > 0) {
+            $_SESSION['success_message'] = "Updated $reactivated_count members to active status due to having less than 3 unpaid fees.";
+            
+            // Log summary in activity log
+            log_activity(
+                "Batch Status Update", 
+                "Updated $reactivated_count members to active status due to having less than 3 unpaid fees",
+                $officer_id
+            );
+        }
+    }
 ?>
 
 <!DOCTYPE html>
@@ -172,7 +300,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" href="images/info-tech.png">
+    <link rel="icon" href="images/info-tech.svg">
     <!-- Custom Styles -->
     <style>
         html, body {
@@ -221,6 +349,13 @@
             padding: 5px 12px;
             font-size: 0.85rem;
         }
+        .unpaid-badge {
+            background-color: #fff3cd;
+            color: #856404;
+            border-radius: 20px;
+            padding: 5px 12px;
+            font-size: 0.85rem;
+        }
         .action-buttons .btn {
             width: 36px;
             height: 36px;
@@ -252,14 +387,20 @@
         <?php if(isset($_SESSION['success_message'])): ?>
             <div class="alert alert-success alert-dismissible fade show" role="alert">
                 <i class="fas fa-check-circle me-2"></i><?php echo $_SESSION['success_message']; ?>
+                <?php unset($_SESSION['success_message']); ?>                
             </div>
-            <?php unset($_SESSION['success_message']); ?>
         <?php endif; ?>
         <?php if (!empty($_SESSION['warning_message'])): ?>
             <div class="alert alert-warning">
                 <i class="fas fa-exclamation-circle"></i>
                 <?php echo $_SESSION['warning_message']; ?>
                 <?php unset($_SESSION['warning_message']); ?>
+            </div>
+        <?php endif; ?>
+        <?php if(isset($_SESSION['error_message'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-xmark-circle me-2"></i><?php echo $_SESSION['error_message']; ?>
+                <?php unset($_SESSION['error_message']); ?>
             </div>
         <?php endif; ?>
 
@@ -319,19 +460,19 @@
                 </div>
             </form>
         </div>
-
         <!-- Members Table -->
         <div class="table-container">
             <?php if ($result->num_rows > 0): ?>
                 <div class="table-responsive">
                     <table class="table table-hover">
+                        <!-- In the table header (thead) section -->
                         <thead class="table-light">
                             <tr>
                                 <th>Member ID</th>
                                 <th>Name</th>
                                 <th>Contact Info</th>
+                                <th>Balance</th>                                
                                 <th>Status</th>
-                                <th>Balance</th>
                                 <th>Semester</th>
                                 <th class="text-center">Actions</th>
                             </tr>
@@ -347,14 +488,23 @@
                                     <td>
                                         <?php 
                                             echo htmlspecialchars($row['last_name']) . ', ' . 
-                                                 htmlspecialchars($row['first_name']) . 
-                                                 (!empty($row['middle_name']) ? ' ' . htmlspecialchars($row['middle_name'][0]) . '.' : '');
+                                                htmlspecialchars($row['first_name']) . 
+                                                (!empty($row['middle_name']) ? ' ' . htmlspecialchars($row['middle_name'][0]) . '.' : '');
                                         ?>
                                     </td>
                                     <td>
                                         <div><?php echo htmlspecialchars($row['email']); ?></div>
                                         <small class="text-muted"><?php echo htmlspecialchars($row['contact_num']); ?></small>
                                     </td>
+                                    <td>
+                                        <?php if ($row['total_unpaid_fees'] > 0): ?>
+                                            <span class="text-danger">
+                                                ₱<?php echo number_format($row['total_unpaid_fees'], 2); ?>
+                                            </span>
+                                        <?php else: ?>
+                                            <span class="text-success">₱0.00</span>
+                                        <?php endif; ?>
+                                    </td>                                    
                                     <td>
                                         <?php
                                             $status_class = '';
@@ -373,8 +523,7 @@
                                             <?php echo htmlspecialchars($row['status']); ?>
                                         </span>
                                     </td>
-                                    <td>₱<?php echo number_format($row['total_fee_amount'], 2); ?></td>
-                                    <td><?php echo htmlspecialchars($row['semester_count'] ?? 'N/A'); ?> semester(s)</td>
+                                    <td><?php echo htmlspecialchars($row['unpaid_semester_count']); ?> semester(s)</td>
                                     <td>
                                     <div class="action-buttons d-flex justify-content-center">
                                         <a href="view_member.php?id=<?php echo htmlspecialchars(urlencode($row['member_id'])); ?>" 

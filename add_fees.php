@@ -26,6 +26,14 @@
         }
         if (empty($school_year)) {
             $errors[] = "School year is required.";
+        } elseif (!preg_match('/^\d{4}-\d{4}$/', $school_year)) {
+            $errors[] = "School year must be in the format YYYY-YYYY (e.g., 2023-2024).";
+        } else {
+            // Additional validation to ensure years are consecutive
+            $years = explode('-', $school_year);
+            if ($years[1] != ($years[0] + 1)) {
+                $errors[] = "School year must be consecutive (e.g., 2023-2024).";
+            }
         }
         if (empty($fee_amount) || !is_numeric($fee_amount) || $fee_amount <= 0) {
             $errors[] = "Fee amount must be a positive number.";
@@ -49,8 +57,8 @@
                     // Insert fee ONLY IF the same semester does not already exist in that school year
                     // AND the member is not an officer
                     $stmt = $conn->prepare("
-                        INSERT INTO fees (member_id, fee_type, fee_amount, semester, school_year)
-                        SELECT member_id, ?, ?, ?, ? FROM members
+                        INSERT INTO fees (member_id, fee_type, fee_amount, semester, school_year, status)
+                        SELECT member_id, ?, ?, ?, ?, 'Unpaid' FROM members
                         WHERE NOT EXISTS (
                             SELECT 1 FROM fees WHERE fees.member_id = members.member_id 
                             AND fees.school_year = ? 
@@ -66,7 +74,7 @@
                     if ($stmt->execute()) {
                         $conn->commit(); // Commit transaction
                         log_activity("Add Fees", "Added fee: $fee_type (₱$fee_amount) for Semester: $semester, SY: $school_year", $officer_id);
-                        $_SESSION['success_message'] = "Fees added successfully for eligible non-officer members!";
+                        $_SESSION['success_message'] = "Fees added successfully for eligible members!";
                         header("Location: members.php");
                         exit();
                     } else {
@@ -97,7 +105,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="images/info-tech.png">
+    <link rel="icon" href="images/info-tech.svg">
     <!-- Custom CSS -->
     <style>
         html, body {
@@ -157,7 +165,7 @@
     <main class="container my-5">
         <div class="card">
             <div class="card-header bg-navy text-white">
-                <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add Fees (Non-Officers Only)</h4>
+                <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add Fees</h4>
             </div>
 
             <div class="card-body form-container">
@@ -195,12 +203,14 @@
 
                     <div class="col-md-3">
                         <label for="school_year" class="form-label required-field">School Year</label>
-                        <input type="text" class="form-control" id="school_year" name="school_year" placeholder="2024-2025" required>
+                        <input type="text" class="form-control" id="school_year" name="school_year" 
+                               placeholder="2023-2024" pattern="\d{4}-\d{4}" 
+                               title="Please enter in the format YYYY-YYYY (e.g., 2023-2024)" required>
                     </div>
 
                     <div class="col-12 text-end">
                         <button type="submit" class="btn btn-navy">
-                            <i class="fas fa-plus me-2"></i>Add Fees to Non-Officer Members
+                            <i class="fas fa-plus me-2"></i>Add Fees to Members
                         </button>
                     </div>
                 </form>

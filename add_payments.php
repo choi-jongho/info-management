@@ -64,19 +64,20 @@
                     $semester = sanitize_input($semesters[$key]);
                     $school_year = sanitize_input($school_years[$key]);
 
-                    // Check if the semester and school year match an existing fee record
-                    $stmt = $conn->prepare("SELECT fee_amount FROM fees WHERE member_id = ? AND semester = ? AND school_year = ?");
+                    // Check if the semester and school year match an existing fee record with 'Unpaid' status
+                    $stmt = $conn->prepare("SELECT member_id, fee_amount FROM fees WHERE member_id = ? AND semester = ? AND school_year = ? AND status = 'Unpaid'");
                     $stmt->bind_param("sss", $member_id, $semester, $school_year);
                     $stmt->execute();
                     $fee_result = $stmt->get_result();
 
                     if ($fee_result->num_rows === 0) {
-                        throw new Exception("Payment unsuccessful: No matching fee found for Semester $semester and SY $school_year.");
+                        throw new Exception("Payment unsuccessful: No matching unpaid fee found for Semester $semester and SY $school_year.");
                     }
 
-                    // Fetch the fee amount
+                    // Fetch the fee amount and ID
                     $fee_row = $fee_result->fetch_assoc();
                     $fee_amount = $fee_row['fee_amount'];
+                    $member_id = $fee_row['member_id'];
                     $stmt->close();
 
                     // Proceed only if payment covers the fee
@@ -91,13 +92,13 @@
                             
                             $stmt->close();
 
-                            // Delete the fee record after successful payment
-                            $stmt = $conn->prepare("DELETE FROM fees WHERE member_id = ? AND semester = ? AND school_year = ?");
+                            // Update the fee record status to 'Paid' after successful payment
+                            $stmt = $conn->prepare("UPDATE fees SET status = 'Paid' WHERE member_id = ? AND semester = ? AND school_year = ?");
                             $stmt->bind_param("sss", $member_id, $semester, $school_year);
 
                             if ($stmt->execute()) {
                                 log_activity("Add Payment", "Payment of ₱$amount added for Member: $member_name (ID: $member_id), Semester: $semester, SY: $school_year", $officer_id);
-                                log_activity("Delete Fee", "Deleted fee for Member: $member_name (ID: $member_id), Semester: $semester, SY: $school_year", $officer_id);
+                                log_activity("Update Fee Status", "Updated fee status to Paid for Member: $member_name (ID: $member_id), Semester: $semester, SY: $school_year", $officer_id);
                                 
                                 // Add to receipt data
                                 $receipt_data[] = [
@@ -107,7 +108,7 @@
                                     'school_year' => $school_year
                                 ];
                             } else {
-                                throw new Exception("Failed to delete fee record.");
+                                throw new Exception("Failed to update fee status.");
                             }
                         } else {
                             throw new Exception("Failed to record payment.");
@@ -175,7 +176,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="images/info-tech.png">
+    <link rel="icon" href="images/info-tech.svg">
 </head>
 <style>
     html, body {
@@ -269,6 +270,7 @@
                                 <th>Semester</th>
                                 <th>School Year</th>
                                 <th>Amount (₱)</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
                         <tbody id="feesTableBody">
@@ -419,13 +421,16 @@
 
                         // Add fee rows
                         if (data.fees.length === 0) {
-                            feesTableBody.innerHTML = `<tr><td colspan="5" class="text-center">No outstanding fees found</td></tr>`;
+                            feesTableBody.innerHTML = `<tr><td colspan="6" class="text-center">No outstanding fees found</td></tr>`;
                         } else {
                             data.fees.forEach(fee => {
+                                // Only allow selection of unpaid fees
+                                const statusClass = fee.status === 'Paid' ? 'text-success' : 'text-danger';
+                                
                                 feesTableBody.innerHTML += `
                                     <tr>
                                         <td><input type="checkbox" class="fee-checkbox" 
-                                            data-fee-id="${fee.fee_type}" 
+                                            data-fee-id="${fee.member_id}" 
                                             data-amount="${fee.fee_amount}" 
                                             data-semester="${fee.semester}" 
                                             data-school-year="${fee.school_year}"></td>
@@ -433,6 +438,7 @@
                                         <td>${fee.semester}</td>
                                         <td>${fee.school_year}</td>
                                         <td>₱${fee.fee_amount}</td>
+                                        <td><span class="${statusClass}">${fee.status}</span></td>
                                     </tr>
                                 `;
                             });

@@ -5,6 +5,7 @@
     // Start the session and check if the officer is logged in
     session_start();
     $officer_id = $_SESSION['officer_id'] ?? null;
+    $officer_role = $_SESSION['officer_role'] ?? null;
 
     if (!$officer_id) {
         header("Location: login.php");
@@ -49,9 +50,9 @@
     $member = $result->fetch_assoc();
     $stmt->close();
 
-    // Fetch semester-wise breakdown of fee payments
+    // Fetch semester-wise breakdown of fee payments - now including status
     $stmt = $conn->prepare("
-        SELECT f.semester, f.fee_amount, f.fee_type, f.school_year
+        SELECT f.semester, f.fee_amount, f.fee_type, f.school_year, f.status
         FROM fees f
         WHERE f.member_id = ?
         ORDER BY f.school_year DESC, f.semester ASC
@@ -63,14 +64,15 @@
     $fees = $fees_result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
 
-    // Create breakdown array including `fee_type` and `school_year`
+    // Create breakdown array including `fee_type`, `school_year`, and `status`
     $breakdown = [];
     foreach ($fees as $row) {
         $breakdown[] = [
             'school_year' => htmlspecialchars($row['school_year']),
             'semester' => htmlspecialchars($row['semester']),
             'fee_type' => htmlspecialchars($row['fee_type']),
-            'amount' => number_format($row['fee_amount'], 2)
+            'amount' => number_format($row['fee_amount'], 2),
+            'status' => htmlspecialchars($row['status'])
         ];
     }
 ?>
@@ -85,7 +87,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="images/info-tech.png">
+    <link rel="icon" href="images/info-tech.svg">
     <style>
         html, body {
             height: 100%;
@@ -108,6 +110,26 @@
             color: white;
             text-align: center;
             padding: 10px 0;
+        }
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .status-paid {
+            background-color: #28a745;
+            color: white;
+        }
+        .status-unpaid {
+            background-color: #dc3545;
+            color: white;
+        }
+        .fee-card {
+            position: relative;
+            margin-bottom: 15px;
         }
     </style>
 </head>
@@ -143,7 +165,10 @@
                                 <div class="row">
                                     <?php foreach ($fees as $fee): ?>
                                         <div class="col-md-6">
-                                            <div class="p-3 border rounded">
+                                            <div class="p-3 border rounded fee-card">
+                                                <div class="status-badge <?php echo $fee['status'] === 'Paid' ? 'status-paid' : 'status-unpaid'; ?>">
+                                                    <?php echo htmlspecialchars($fee['status']); ?>
+                                                </div>
                                                 <strong>Semester:</strong> <?php echo htmlspecialchars($fee['semester']); ?><br>
                                                 <strong>Fee Type:</strong> <?php echo htmlspecialchars($fee['fee_type']); ?><br>
                                                 <strong>Amount:</strong> ₱<?php echo htmlspecialchars($fee['amount']); ?>
@@ -157,9 +182,16 @@
                 </div>
             </div>
         </div>
-        <a href="members.php" class="btn btn-secondary mt-3">
-            <i class="fas fa-arrow-left me-2"></i>Back to Members
-        </a>
+        <div class="d-flex justify-content-between mt-4">
+            <a href="members.php" class="btn btn-secondary me-2">
+                <i class="fas fa-times me-1"></i> Cancel
+            </a>
+            <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president'])): ?>
+                <a href="add_payments.php" class="btn btn-success me-2">
+                    <i class="fas fa-money-bill-wave me-1"></i> Add Payment
+                </a>
+            <?php endif; ?>
+        </div>
     </main>
     <?php include('footer.php'); ?>
     <!-- Bootstrap JS -->

@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
 
     // Validate inputs  
     if (empty($username)) {
-        $login_errors[] = "Username, Officer ID, Member ID, or Role ID is required.";
+        $login_errors[] = "Username or ID is required.";
     }
     if (empty($password)) {
         $login_errors[] = "Password is required.";
@@ -66,7 +66,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
     <title>Officer Login</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="icon" href="images/info-tech.png">
+    <link rel="icon" href="images/info-tech.svg">
     
     <style>
         html, body {
@@ -138,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
                         <!-- Login Form -->
                         <form action="login.php" method="POST">
                             <div class="mb-3">
-                                <label for="username" class="form-label">Officer ID or Username</label>
+                                <label for="username" class="form-label">ID or Username</label>
                                 <input type="text" class="form-control" id="username" name="username" required>
                             </div>
 

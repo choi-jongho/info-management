@@ -96,7 +96,7 @@
                                     </a>
                                 </li>
                             <?php endif; ?>
-			                <?php if ($_SESSION['officer_role'] === 'intel_president'): ?>
+			                <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president'])): ?>
                                 <li>
                                     <a class="dropdown-item" href="activity_log.php">
                                         <i class="fas fa-history me-2"></i> Activity Log

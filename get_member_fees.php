@@ -8,9 +8,6 @@
     // Initialize response
     $response = [];
 
-    // For debugging
-    $debug = [];
-
     if (empty($member_id)) {
         $response['error'] = 'Member ID is required';
         echo json_encode($response);
@@ -24,7 +21,6 @@
         exit;
     }
 
-    // Based on the add_payments.php file, the correct column names are first_name and last_name
     try {
         $stmt = $conn->prepare("SELECT member_id, CONCAT(first_name, ' ', last_name) AS member_name FROM members WHERE member_id = ?");
         if (!$stmt) {
@@ -50,7 +46,7 @@
         $stmt->close();
         
         // Get outstanding fees for the member
-        $fees_query = $conn->prepare("SELECT member_id, fee_amount, fee_type, semester, school_year FROM fees WHERE member_id = ?");
+        $fees_query = $conn->prepare("SELECT member_id, fee_amount, fee_type, semester, school_year, status FROM fees WHERE member_id = ? AND status = 'Unpaid'");
         if (!$fees_query) {
             throw new Exception("Fee query prepare failed: " . $conn->error);
         }
