@@ -26,13 +26,13 @@
         }
         if (empty($school_year)) {
             $errors[] = "School year is required.";
-        } elseif (!preg_match('/^\d{4}-\d{4}$/', $school_year)) {
-            $errors[] = "School year must be in the format YYYY-YYYY (e.g., 2023-2024).";
+        } elseif (!preg_match('/^[0-9]{4}-[0-9]{4}$/', $school_year)) {
+            $errors[] = "School year must be in the format 0000-0000.";
         } else {
-            // Additional validation to ensure years are consecutive
+            // Additional validation to ensure it's strictly in 0000-0000 format
             $years = explode('-', $school_year);
-            if ($years[1] != ($years[0] + 1)) {
-                $errors[] = "School year must be consecutive (e.g., 2023-2024).";
+            if (count($years) !== 2 || strlen($years[0]) !== 4 || strlen($years[1]) !== 4) {
+                $errors[] = "School year must be in the format 0000-0000.";
             }
         }
         if (empty($fee_amount) || !is_numeric($fee_amount) || $fee_amount <= 0) {
@@ -204,8 +204,8 @@
                     <div class="col-md-3">
                         <label for="school_year" class="form-label required-field">School Year</label>
                         <input type="text" class="form-control" id="school_year" name="school_year" 
-                               placeholder="2023-2024" pattern="\d{4}-\d{4}" 
-                               title="Please enter in the format YYYY-YYYY (e.g., 2023-2024)" required>
+                               placeholder="0000-0000" pattern="[0-9]{4}-[0-9]{4}" 
+                               title="Please enter in the format 0000-0000" required>
                     </div>
 
                     <div class="col-12 text-end">
@@ -222,6 +222,29 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Add client-side validation for school year format
+            const schoolYearInput = document.getElementById('school_year');
+            
+            schoolYearInput.addEventListener('input', function(e) {
+                const value = e.target.value;
+                
+                // Only allow digits and a single hyphen
+                if (!/^[0-9-]*$/.test(value)) {
+                    e.target.value = value.replace(/[^0-9-]/g, '');
+                }
+                
+                // Format as user types (after 4 digits, add hyphen)
+                if (value.length === 4 && !value.includes('-')) {
+                    e.target.value = value + '-';
+                }
+                
+                // Limit to 9 characters (0000-0000)
+                if (value.length > 9) {
+                    e.target.value = value.slice(0, 9);
+                }
+            });
+            
+            // Alert hiding functionality
             setTimeout(function() {
                 let alertBox = document.querySelector(".alert");
                 if (alertBox) {
@@ -229,7 +252,7 @@
                     alertBox.style.opacity = "0";
                     setTimeout(() => alertBox.style.display = "none", 500);
                 }
-            }, 2500); // 2 seconds delay
+            }, 2500); // 2.5 seconds delay
         });
     </script>
     

@@ -397,12 +397,6 @@
                 <?php unset($_SESSION['warning_message']); ?>
             </div>
         <?php endif; ?>
-        <?php if(isset($_SESSION['error_message'])): ?>
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="fas fa-xmark-circle me-2"></i><?php echo $_SESSION['error_message']; ?>
-                <?php unset($_SESSION['error_message']); ?>
-            </div>
-        <?php endif; ?>
 
         <div class="row align-items-center mb-4">
             <!-- If NOT President or Treasurer, align search bar with filters -->

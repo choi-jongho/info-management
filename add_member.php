@@ -80,6 +80,14 @@
     
             if (empty($member_id) || empty($last_name) || empty($first_name) || empty($fee_type) || $fee_amount <= 0 || empty($semester) || empty($school_year)) {
                 $errors[] = "Required fields are missing.";
+            } elseif (!preg_match('/^\d{4}-\d{4}$/', $school_year)) {
+                $errors[] = "School year must be in the format 0000-0000.";
+            } else {
+                // Additional validation to ensure it's strictly in 0000-0000 format
+                $years = explode('-', $school_year);
+                if (count($years) !== 2 || strlen($years[0]) !== 4 || strlen($years[1]) !== 4) {
+                    $errors[] = "School year must be in the format 0000-0000.";
+                }
             }
     
             // If no errors, proceed with inserting manually entered data
@@ -143,6 +151,12 @@
     
                 // Validate required fields
                 if (empty($member_id) || empty($last_name) || empty($first_name) || empty($fee_type) || $fee_amount <= 0 || empty($semester) || empty($school_year)) {
+                    $results['errors']++;
+                    continue;
+                }
+    
+                // Validate school year format - strict 0000-0000 format
+                if (!preg_match('/^\d{4}-\d{4}$/', $school_year)) {
                     $results['errors']++;
                     continue;
                 }
@@ -383,7 +397,10 @@
 
                     <div class="col-md-3">
                         <label for="school_year" class="form-label required-field">School Year</label>
-                        <input type="text" class="form-control" id="school_year" name="school_year" placeholder="2024-2025" value="<?php echo isset($_POST['school_year']) ? htmlspecialchars($_POST['school_year']) : ''; ?>" required>
+                        <input type="text" class="form-control" id="school_year" name="school_year" 
+                               placeholder="0000-0000" pattern="\d{4}-\d{4}" 
+                               title="Please enter in the format 0000-0000" 
+                               value="<?php echo isset($_POST['school_year']) ? htmlspecialchars($_POST['school_year']) : ''; ?>" required>
                     </div>
                 </div>
 
@@ -418,6 +435,35 @@
                     setTimeout(() => alertBox.remove(), 500);
                 }
             }, 2500);
+
+            const schoolYearInput = document.getElementById('school_year');
+            
+            schoolYearInput.addEventListener('input', function(e) {
+                const value = e.target.value;
+                
+                // Only allow digits and a single hyphen
+                if (!/^[0-9-]*$/.test(value)) {
+                    e.target.value = value.replace(/[^0-9-]/g, '');
+                }
+                
+                // Format as user types (after 4 digits, add hyphen)
+                if (value.length === 4 && !value.includes('-')) {
+                    e.target.value = value + '-';
+                }
+                
+                // Limit to 9 characters (0000-0000)
+                if (value.length > 9) {
+                    e.target.value = value.slice(0, 9);
+                }
+                
+                // Set custom validity for form validation
+                const pattern = /^\d{4}-\d{4}$/;
+                if (!pattern.test(e.target.value)) {
+                    this.setCustomValidity('Please enter in the format 0000-0000');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
         });
     </script>
 </body>
