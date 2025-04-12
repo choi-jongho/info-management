@@ -30,8 +30,7 @@
         <div class="container">
             <!-- Logo & Brand (Left) -->
             <a class="navbar-brand d-flex align-items-center me-5" href="dashboard.php">
-                <i class="fas fa-laptop-code me-3"></i>
-                <span>INTEL</span>
+                <img src="images/intel.png" alt="Logo" style="width: 90px; height: 50px;">
             </a>
 
             <!-- Mobile Toggle Button -->
