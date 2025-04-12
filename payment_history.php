@@ -106,6 +106,8 @@
                                     <th>Payment ID</th>
                                     <th>Fee Type</th>
                                     <th>Amount</th>
+                                    <th>Semester</th>
+                                    <th>School Year</th>
                                     <th>Payment Date</th>
                                 </tr>
                             </thead>
@@ -115,6 +117,8 @@
                                         <td><?php echo htmlspecialchars($payment['payment_id']); ?></td>
                                         <td><?php echo htmlspecialchars($payment['fee_type']); ?></td>
                                         <td><?php echo format_currency($payment['amount']); ?></td>
+                                        <td><?php echo htmlspecialchars($payment['semester']); ?></td>
+                                        <td><?php echo htmlspecialchars($payment['school_year']); ?></td>
                                         <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
                                         <td class="text-end">
                                             <a href="view_receipt.php?payment_id=<?php echo htmlspecialchars(urlencode($payment['payment_id'])); ?>" 

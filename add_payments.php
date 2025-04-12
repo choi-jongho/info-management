@@ -443,12 +443,15 @@
                                 // Ensure fee_type has a default value if it's null or empty
                                 const feeType = fee.fee_type || 'Membership Fee';
                                 
+                                // Format the semester value to match dropdown options if needed
+                                const formattedSemester = fee.semester;
+                                
                                 feesTableBody.innerHTML += `
                                     <tr>
                                         <td><input type="checkbox" class="fee-checkbox" 
                                             data-fee-id="${fee.member_id}" 
                                             data-amount="${fee.fee_amount}" 
-                                            data-semester="${fee.semester}" 
+                                            data-semester="${formattedSemester}" 
                                             data-school-year="${fee.school_year}"
                                             data-fee-type="${feeType}"></td>
                                         <td>${feeType}</td>
@@ -487,6 +490,9 @@
                 selectedFees.forEach((checkbox, index) => {
                     const amount = checkbox.getAttribute("data-amount");
                     const semester = checkbox.getAttribute("data-semester");
+                    // Normalize semester format to match the dropdown values
+                    const normalizedSemester = semester.includes("1st") ? "1st Semester" :
+                                           semester.includes("2nd") ? "2nd Semester" : semester;
                     const schoolYear = checkbox.getAttribute("data-school-year");
                     
                     // Use a default if fee type is null, undefined, or empty string
@@ -495,26 +501,26 @@
                     const newEntry = document.createElement("div");
                     newEntry.classList.add("payment-entry", "row", "mb-3");
                     newEntry.innerHTML = `
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label">Fee Type</label>
                             <input type="text" class="form-control" name="fee_type[]" value="${feeType}" required>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label">Payment Amount (₱)</label>
                             <input type="number" class="form-control" name="amount[]" min="0" step="0.01" value="${amount}" required>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-3">
                             <label class="form-label">Semester</label>
                             <select class="form-select" name="semester[]" required>
-                                <option value="1st Semester" ${semester === '1st Semester' ? 'selected' : ''}>1st Semester</option>
-                                <option value="2nd Semester" ${semester === '2nd Semester' ? 'selected' : ''}>2nd Semester</option>
+                                <option value="1st Semester" ${normalizedSemester === '1st Semester' ? 'selected' : ''}>1st Semester</option>
+                                <option value="2nd Semester" ${normalizedSemester === '2nd Semester' ? 'selected' : ''}>2nd Semester</option>
                             </select>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">School Year</label>
                             <input type="text" class="form-control" name="school_year[]" value="${schoolYear}" required>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end">
+                        <div class="col-md-1 d-flex align-items-end">
                             <button type="button" class="btn btn-danger remove-payment"><i class="fas fa-trash"></i></button>
                         </div>
                     `;

@@ -2,22 +2,18 @@
     require_once('database.php');
     require_once('functions.php');
 
-    // Start session
     session_start();
     $officer_id = $_SESSION['officer_id'] ?? null;
 
-    // Check if user is logged in
     if (!$officer_id) {
         header("Location: login.php");
         exit();
     }
 
-    // Define pagination variables
     $logs_per_page = 10;
     $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
     $offset = ($page - 1) * $logs_per_page;
 
-    // Search functionality
     $search_query = isset($_GET['search']) ? trim($_GET['search']) : "";
     $search_sql = "";
 
@@ -25,170 +21,221 @@
         $search_sql = "WHERE al.action LIKE ? OR al.description LIKE ? OR al.officer_id LIKE ? OR CONCAT(m.first_name, ' ', m.last_name) LIKE ?";
     }
 
-    // Fetch logs with search filter and pagination
-    // Join with officers and members tables to get officer names
+    // Fetch logs
     $query = "SELECT al.*, CONCAT(m.first_name, ' ', m.last_name) AS officer_name,
-              CASE
-                WHEN al.action = 'Member Deletion' THEN (
-                    SELECT CONCAT(member_data, '') FROM deleted_members 
-                    WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1))
-                    LIMIT 1
-                )
-                ELSE NULL
-              END AS member_data
-              FROM activity_logs al
-              LEFT JOIN officers o ON al.officer_id = o.officer_id
-              LEFT JOIN members m ON o.member_id = m.member_id
-              $search_sql
-              ORDER BY al.date DESC 
-              LIMIT ?, ?";
+        CASE WHEN al.action = 'Member Deletion' THEN (
+            SELECT member_data FROM deleted_members 
+            WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1)) LIMIT 1
+        ) ELSE NULL END AS member_data,
+        CASE WHEN al.action = 'Member Deletion' THEN (
+            SELECT fees_data FROM deleted_members 
+            WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1)) LIMIT 1
+        ) ELSE NULL END AS fees_data,
+        CASE WHEN al.action = 'Member Deletion' THEN (
+            SELECT payments_data FROM deleted_members 
+            WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1)) LIMIT 1
+        ) ELSE NULL END AS payments_data,
+        CASE WHEN al.action = 'Member Deletion' THEN (
+            SELECT receipts_data FROM deleted_members 
+            WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1)) LIMIT 1
+        ) ELSE NULL END AS receipts_data
+        FROM activity_logs al
+        LEFT JOIN officers o ON al.officer_id = o.officer_id
+        LEFT JOIN members m ON o.member_id = m.member_id
+        $search_sql
+        ORDER BY al.date DESC 
+        LIMIT ?, ?";
 
     $stmt = $conn->prepare($query);
-    
     if (!empty($search_query)) {
         $search_param = "%" . $search_query . "%";
         $stmt->bind_param("ssssii", $search_param, $search_param, $search_param, $search_param, $offset, $logs_per_page);
     } else {
         $stmt->bind_param("ii", $offset, $logs_per_page);
     }
-
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Count total logs for pagination
-    $count_query = "SELECT COUNT(*) AS count 
-                    FROM activity_logs al
-                    LEFT JOIN officers o ON al.officer_id = o.officer_id
-                    LEFT JOIN members m ON o.member_id = m.member_id
-                    $search_sql";
-                    
+    // Count logs
+    $count_query = "SELECT COUNT(*) AS count FROM activity_logs al
+    LEFT JOIN officers o ON al.officer_id = o.officer_id
+    LEFT JOIN members m ON o.member_id = m.member_id
+    $search_sql";
     $total_logs_stmt = $conn->prepare($count_query);
-    
     if (!empty($search_query)) {
         $total_logs_stmt->bind_param("ssss", $search_param, $search_param, $search_param, $search_param);
     }
-    
     $total_logs_stmt->execute();
     $total_logs = $total_logs_stmt->get_result()->fetch_assoc()['count'];
     $total_pages = ceil($total_logs / $logs_per_page);
 
-    // Calculate displayed range
     $display_start = $offset + 1;
     $display_end = min($offset + $logs_per_page, $total_logs);
 
-    // Process restoration if requested
+    // Restore member
     if (isset($_POST['restore_member']) && isset($_POST['log_id'])) {
         $log_id = $_POST['log_id'];
-    
-        // Verify the log exists and contains member data
+
         $verify_stmt = $conn->prepare("
             SELECT al.log_id, al.description, 
-                  (SELECT member_data FROM deleted_members 
-                   WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1))
-                   LIMIT 1) AS member_data
+                (SELECT member_data FROM deleted_members WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1)) LIMIT 1) AS member_data,
+                (SELECT fees_data FROM deleted_members WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1)) LIMIT 1) AS fees_data,
+                (SELECT payments_data FROM deleted_members WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1)) LIMIT 1) AS payments_data,
+                (SELECT receipts_data FROM deleted_members WHERE description IN (al.description, SUBSTRING_INDEX(al.description, ' (Deleted by', 1)) LIMIT 1) AS receipts_data
             FROM activity_logs al
             WHERE al.log_id = ? AND al.action = 'Member Deletion'
         ");
         $verify_stmt->bind_param("i", $log_id);
         $verify_stmt->execute();
         $log_result = $verify_stmt->get_result();
-    
+
         if ($log_result->num_rows > 0) {
             $log_data = $log_result->fetch_assoc();
-    
-            if (!empty($log_data['member_data'])) {
-                // Decode the JSON member data
-                $member_data = json_decode($log_data['member_data'], true);
-    
-                if ($member_data && is_array($member_data)) {
-                    // Begin transaction
-                    $conn->begin_transaction();
-    
-                    try {
-                        // Check if the member ID already exists
-                        $check_stmt = $conn->prepare("SELECT member_id FROM members WHERE member_id = ?");
-                        $check_stmt->bind_param("s", $member_data['member_id']);
-                        $check_stmt->execute();
-                        $exists = $check_stmt->get_result()->num_rows > 0;
-    
-                        if (!$exists) {
-                            // Insert the member back into the members table
-                            $insert_stmt = $conn->prepare("
-                                INSERT INTO members (member_id, last_name, first_name, middle_name, contact_num, email, status)
-                                VALUES (?, ?, ?, ?, ?, ?, ?)
+
+            $member_data = json_decode($log_data['member_data'], true);
+            $fees_data = json_decode($log_data['fees_data'], true);
+            $payments_data = json_decode($log_data['payments_data'], true);
+            $receipts_data = json_decode($log_data['receipts_data'], true);
+
+            if ($member_data && is_array($member_data)) {
+                $conn->begin_transaction();
+
+                try {
+                    $check_stmt = $conn->prepare("SELECT member_id FROM members WHERE member_id = ?");
+                    $check_stmt->bind_param("s", $member_data['member_id']);
+                    $check_stmt->execute();
+                    $exists = $check_stmt->get_result()->num_rows > 0;
+
+                    if (!$exists) {
+                        // Insert member
+                        $insert_stmt = $conn->prepare("
+                            INSERT INTO members (member_id, first_name, last_name, middle_name, contact_num, email, status, membership_date)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ");
+                        $insert_stmt->bind_param(
+                            "ssssssss",
+                            $member_data['member_id'],
+                            $member_data['first_name'],
+                            $member_data['last_name'],
+                            $member_data['middle_name'],
+                            $member_data['contact_num'],
+                            $member_data['email'],
+                            $member_data['status'],
+                            $member_data['membership_date']
+                        );
+                        $insert_stmt->execute();
+
+                        // Restore fees
+                        foreach ($fees_data as $fee) {
+                            $insert_fee_stmt = $conn->prepare("
+                                INSERT INTO fees (member_id, fee_amount, fee_type, semester, school_year, status)
+                                VALUES (?, ?, ?, ?, ?, ?)
                             ");
-                            $insert_stmt->bind_param(
-                                "sssssss",
-                                $member_data['member_id'],
-                                $member_data['last_name'],
-                                $member_data['first_name'],
-                                $member_data['middle_name'],
-                                $member_data['contact_num'],
-                                $member_data['email'],
-                                $member_data['status']
+                            $insert_fee_stmt->bind_param(
+                                "sdssss",
+                                $fee['member_id'],
+                                $fee['fee_amount'],
+                                $fee['fee_type'],
+                                $fee['semester'],
+                                $fee['school_year'],
+                                $fee['status']
                             );
-                            $insert_stmt->execute();
-    
-                            // Restore fee records
-                            if (!empty($member_data['fees'])) {
-                                $fee_stmt = $conn->prepare("
-                                    INSERT INTO fees (member_id, fee_type, fee_amount, semester, school_year, status)
+                            $insert_fee_stmt->execute();
+                        }
+
+                        // Restore payments first and track payment IDs
+                        $payment_map = []; // To keep track of old payment_id -> new payment_id
+                        foreach ($payments_data as $payment) {
+                            // Check if payment_id exists as primary key
+                            $check_payment = $conn->prepare("SELECT payment_id FROM payments WHERE payment_id = ?");
+                            $check_payment->bind_param("s", $payment['payment_id']);
+                            $check_payment->execute();
+                            $payment_exists = $check_payment->get_result()->num_rows > 0;
+                            
+                            if (!$payment_exists) {
+                                $insert_payment_stmt = $conn->prepare("
+                                    INSERT INTO payments (payment_id, member_id, fee_type, amount, semester, school_year, payment_date)
+                                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                                ");
+                                $insert_payment_stmt->bind_param(
+                                    "sssdsss",
+                                    $payment['payment_id'],
+                                    $payment['member_id'],
+                                    $payment['fee_type'],
+                                    $payment['amount'],
+                                    $payment['semester'],
+                                    $payment['school_year'],
+                                    $payment['payment_date']
+                                );
+                                $insert_payment_stmt->execute();
+                                $payment_map[$payment['payment_id']] = $payment['payment_id'];
+                            } else {
+                                $payment_map[$payment['payment_id']] = $payment['payment_id'];
+                            }
+                        }
+
+                        // Now restore receipts, only if the payment exists
+                        foreach ($receipts_data as $receipt) {
+                            // Only insert if the corresponding payment exists
+                            $check_payment = $conn->prepare("SELECT payment_id FROM payments WHERE payment_id = ?");
+                            $check_payment->bind_param("s", $receipt['payment_id']);
+                            $check_payment->execute();
+                            $payment_exists = $check_payment->get_result()->num_rows > 0;
+                            
+                            if ($payment_exists) {
+                                $insert_receipt_stmt = $conn->prepare("
+                                    INSERT INTO receipts (receipt_id, payment_id, member_id, officer_id, total_amount, receipt_date)
                                     VALUES (?, ?, ?, ?, ?, ?)
                                 ");
-                                foreach ($member_data['fees'] as $fee) {
-                                    $fee_stmt->bind_param(
-                                        "ssdsss",
-                                        $member_data['member_id'],
-                                        $fee['fee_type'],
-                                        $fee['fee_amount'],
-                                        $fee['semester'],
-                                        $fee['school_year'],
-                                        $fee['status'] // Restore original status
-                                    );
-                                    $fee_stmt->execute();
-                                }
+                                $insert_receipt_stmt->bind_param(
+                                    "ssssds",
+                                    $receipt['receipt_id'],
+                                    $receipt['payment_id'],
+                                    $receipt['member_id'],
+                                    $receipt['officer_id'],
+                                    $receipt['total_amount'],
+                                    $receipt['receipt_date']
+                                );
+                                $insert_receipt_stmt->execute();
                             }
-    
-                            // Delete the entry from deleted_members table
-                            $delete_stmt = $conn->prepare("
-                                DELETE FROM deleted_members 
-                                WHERE description IN (?, SUBSTRING_INDEX(?, ' (Deleted by', 1))
-                            ");
-                            $delete_stmt->bind_param("ss", $log_data['description'], $log_data['description']);
-                            $delete_stmt->execute();
-    
-                            // Log the restoration
-                            log_activity(
-                                "Member Restoration",
-                                "Member {$member_data['first_name']} {$member_data['last_name']} (ID: {$member_data['member_id']}) was restored from deletion",
-                                $officer_id
-                            );
-    
-                            $conn->commit();
-                            $_SESSION['success_message'] = "Member {$member_data['first_name']} {$member_data['last_name']} has been successfully restored.";
-                        } else {
-                            $conn->rollback();
-                            $_SESSION['error_message'] = "Cannot restore member: Student ID {$member_data['member_id']} already exists.";
                         }
-                    } catch (Exception $e) {
+
+                        // Delete from deleted_members
+                        $delete_stmt = $conn->prepare("DELETE FROM deleted_members 
+                            WHERE description IN (?, SUBSTRING_INDEX(?, ' (Deleted by', 1))");
+                        $delete_stmt->bind_param("ss", $log_data['description'], $log_data['description']);
+                        $delete_stmt->execute();
+
+                        log_activity("Member Restoration", 
+                            "Member {$member_data['first_name']} {$member_data['last_name']} (ID: {$member_data['member_id']}) was restored.",
+                            $officer_id
+                        );
+
+                        $conn->commit();
+                        $_SESSION['success_message'] = "Member and associated data successfully restored.";
+                        header("Location: members.php");
+                        exit();
+                    } else {
                         $conn->rollback();
-                        $_SESSION['error_message'] = "Error restoring member: " . $e->getMessage();
+                        $_SESSION['error_message'] = "Cannot restore: Member ID already exists.";
                     }
-                } else {
-                    $_SESSION['error_message'] = "Invalid member data format.";
+                } catch (Exception $e) {
+                    $conn->rollback();
+                    $_SESSION['error_message'] = "Restoration failed: " . $e->getMessage();
                 }
             } else {
-                $_SESSION['error_message'] = "No member data found for restoration.";
+                $_SESSION['error_message'] = "Invalid member data format.";
             }
         } else {
-            $_SESSION['error_message'] = "Invalid log entry for restoration.";
+            $_SESSION['error_message'] = "Invalid log entry.";
         }
-    
-        // Redirect to refresh the page
+
         header("Location: activity_log.php" . (!empty($search_query) ? "?search=" . urlencode($search_query) : ""));
         exit();
     }
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
