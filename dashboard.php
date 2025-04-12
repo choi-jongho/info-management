@@ -305,7 +305,7 @@
                             <thead>
                                 <tr>
                                     <th>Name</th>
-                                    <th>Member ID</th>
+                                    <th>Student ID</th>
                                     <th>Status</th>
                                     <th>Actions</th>
                                 </tr>

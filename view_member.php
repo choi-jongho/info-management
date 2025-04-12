@@ -117,7 +117,7 @@
                     <div class="col-md-6">
                         <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
                         <div class="mb-3">
-                            <label class="fw-bold">Member ID:</label>
+                            <label class="fw-bold">Student ID:</label>
                             <p><?php echo htmlspecialchars($member['member_id']); ?></p>
                         </div>
                         <div class="mb-3">

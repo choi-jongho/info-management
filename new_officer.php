@@ -29,7 +29,7 @@
           $signup_errors[] = "Officer ID is required.";
       }
       if (empty($signup_member_id)) {
-          $signup_errors[] = "Member ID is required.";
+          $signup_errors[] = "Student ID is required.";
       }
       if (empty($signup_role_id)) {
           $signup_errors[] = "Role ID is required.";
@@ -156,7 +156,7 @@
                         <input type="text" class="form-control" id="signup_officer_id" name="signup_officer_id" value="<?php echo isset($_POST['signup_officer_id']) ? htmlspecialchars($_POST['signup_officer_id']) : ''; ?>" required>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="signup_member_id" class="form-label required-field">Member ID</label>
+                        <label for="signup_member_id" class="form-label required-field">Student ID</label>
                         <input type="text" class="form-control" id="signup_member_id" name="signup_member_id" value="<?php echo isset($_POST['signup_member_id']) ? htmlspecialchars($_POST['signup_member_id']) : ''; ?>" required>
                     </div>
                     <div class="col-md-4 mb-3">

@@ -168,7 +168,7 @@
                             $_SESSION['success_message'] = "Member {$member_data['first_name']} {$member_data['last_name']} has been successfully restored.";
                         } else {
                             $conn->rollback();
-                            $_SESSION['error_message'] = "Cannot restore member: Member ID {$member_data['member_id']} already exists.";
+                            $_SESSION['error_message'] = "Cannot restore member: Student ID {$member_data['member_id']} already exists.";
                         }
                     } catch (Exception $e) {
                         $conn->rollback();

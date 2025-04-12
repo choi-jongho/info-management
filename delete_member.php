@@ -12,7 +12,7 @@
 
     // Check if ID is provided
     if (!isset($_GET['id']) || empty($_GET['id'])) {
-        $_SESSION['error_message'] = "No Member ID provided!";
+        $_SESSION['error_message'] = "No Student ID provided!";
         header("Location: members.php");
         exit();
     }

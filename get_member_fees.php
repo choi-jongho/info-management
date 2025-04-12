@@ -9,7 +9,7 @@
     $response = [];
 
     if (empty($member_id)) {
-        $response['error'] = 'Member ID is required';
+        $response['error'] = 'Student ID is required';
         echo json_encode($response);
         exit;
     }
@@ -60,6 +60,10 @@
         $fees = [];
         
         while ($fee = $fees_result->fetch_assoc()) {
+            // Ensure fee_type is never null
+            if (empty($fee['fee_type'])) {
+                $fee['fee_type'] = 'Membership Fee'; // Default value
+            }
             $fees[] = $fee;
         }
         

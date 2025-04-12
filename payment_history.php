@@ -104,6 +104,7 @@
                             <thead>
                                 <tr>
                                     <th>Payment ID</th>
+                                    <th>Fee Type</th>
                                     <th>Amount</th>
                                     <th>Payment Date</th>
                                 </tr>
@@ -112,6 +113,7 @@
                                 <?php foreach ($payments as $payment): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($payment['payment_id']); ?></td>
+                                        <td><?php echo htmlspecialchars($payment['fee_type']); ?></td>
                                         <td><?php echo format_currency($payment['amount']); ?></td>
                                         <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
                                         <td class="text-end">

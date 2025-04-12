@@ -154,7 +154,7 @@
                     <td><strong>Date:</strong> <?php echo date('F d, Y', strtotime($receipt['payment_date'])); ?></td>
                 </tr>
                 <tr>
-                    <td><strong>Member ID:</strong> <?php echo $receipt['member_id']; ?></td>
+                    <td><strong>Student ID:</strong> <?php echo $receipt['member_id']; ?></td>
                     <td><strong>Time:</strong> <?php echo date('h:i A', strtotime($receipt['payment_date'])); ?></td>
                 </tr>
                 <tr>
@@ -170,7 +170,9 @@
                     <th>Payment ID</th>
                     <th>Semester</th>
                     <th>School Year</th>
+                    <th>Fee Type</th>
                     <th>Amount</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -179,6 +181,7 @@
                     <td><?php echo $payment['payment_id']; ?></td>
                     <td><?php echo $payment['semester']; ?></td>
                     <td><?php echo $payment['school_year']; ?></td>
+                    <td><?php echo $payment['fee_type']; ?></td>
                     <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
                 </tr>
                 <?php endforeach; ?>

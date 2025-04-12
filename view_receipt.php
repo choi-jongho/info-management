@@ -80,6 +80,7 @@
         $stmt->close();
         
         // Create receipt data for display
+        // When creating a new receipt - add fee_type
         $receipt_data = [
             'receipt_id' => $receipt_id,
             'payment_date' => $payment['payment_date'],
@@ -91,6 +92,7 @@
                     'payment_id' => $payment['payment_id'],
                     'semester' => $payment['semester'] ?? 'N/A',
                     'school_year' => $payment['school_year'] ?? 'N/A',
+                    'fee_type' => $payment['fee_type'] ?? 'Membership Fee',  // Add this line
                     'amount' => $payment['amount']
                 ]
             ]
@@ -101,7 +103,7 @@
         $stmt->close();
         
         // Get payment details
-        $stmt = $conn->prepare("SELECT * FROM payments WHERE payment_id = ?");
+        $stmt = $conn->prepare("SELECT payment_id, fee_type, amount, semester, school_year, payment_date FROM payments WHERE payment_id = ?");
         $stmt->bind_param("s", $payment_id);
         $stmt->execute();
         $payment_result = $stmt->get_result();
@@ -121,7 +123,8 @@
                     'payment_id' => $payment['payment_id'],
                     'semester' => $payment['semester'] ?? 'N/A',
                     'school_year' => $payment['school_year'] ?? 'N/A',
-                    'amount' => $payment['amount']
+                    'amount' => $payment['amount'],
+                    'fee_type' => $payment['fee_type'] ?? 'Membership Fee'  // Add this line
                 ]
             ]
         ];

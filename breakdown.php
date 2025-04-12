@@ -141,9 +141,9 @@
                 <h3>Pending Payment Breakdown</h3>
             </div>
             <div class="card-body">
-                <p><strong>Member ID:</strong> <?php echo htmlspecialchars($member['member_id']); ?></p>
+                <p><strong>Student ID:</strong> <?php echo htmlspecialchars($member['member_id']); ?></p>
                 <p><strong>Name:</strong> <?php echo htmlspecialchars(format_name($member['first_name'], $member['last_name'], $member['middle_name'])); ?></p>
-                <p><strong>Balance:</strong> <?php echo htmlspecialchars($member['total_fee_amount']); ?> PHP</p>
+                <p><strong>Balance:</strong> ₱<?php echo htmlspecialchars($member['total_fee_amount']); ?></p>
                 <p><strong>Semester(s):</strong> <?php echo htmlspecialchars($member['semesters']); ?></p>
 
                 <h5 class="mt-4">Breakdown:</h5>

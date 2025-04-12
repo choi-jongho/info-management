@@ -462,7 +462,7 @@
                         <!-- In the table header (thead) section -->
                         <thead class="table-light">
                             <tr>
-                                <th>Member ID</th>
+                                <th>Student ID</th>
                                 <th>Name</th>
                                 <th>Contact Info</th>
                                 <th>Balance</th>                                

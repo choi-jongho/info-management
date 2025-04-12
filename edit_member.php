@@ -236,9 +236,9 @@
                 <form method="POST" action="" class="needs-validation" novalidate>
                     <div class="row mb-4">
                         <div class="col-md-3 mb-3">
-                            <label for="member_id" class="form-label">Member ID</label>
+                            <label for="member_id" class="form-label">Student ID</label>
                             <input type="text" class="form-control" id="member_id" value="<?php echo htmlspecialchars($member['member_id']); ?>" readonly disabled>
-                            <div class="form-text text-muted">Member ID cannot be changed</div>
+                            <div class="form-text text-muted">Student ID cannot be changed</div>
                         </div>
 
                         <div class="col-md-3 mb-3">

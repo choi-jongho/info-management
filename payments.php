@@ -22,7 +22,7 @@
 
         // Validate input
         if (empty($member_id)) {
-            $errors[] = "Member ID is required.";
+            $errors[] = "Student ID is required.";
         }
 
         if (empty($amount)) {
@@ -39,7 +39,7 @@
             $result = $stmt->get_result();
 
             if ($result->num_rows === 0) {
-                $errors[] = "Member ID does not exist.";
+                $errors[] = "Student ID does not exist.";
             }
 
             $stmt->close();
@@ -47,12 +47,12 @@
 
         // Add payment if no errors
         if (empty($errors)) {
-            $stmt = $conn->prepare("INSERT INTO payments (member_id, amount, payment_date) VALUES (?, ?, NOW())");
-            $stmt->bind_param("sd", $member_id, $amount);
+            $stmt = $conn->prepare("INSERT INTO payments (member_id, fee_type, amount, payment_date) VALUES (?, ?, NOW())");
+            $stmt->bind_param("ssd", $member_id, $fee_type, $amount);
 
             if ($stmt->execute()) {
                 $success = true;
-                log_activity("Add Payment", "Payment of ₱$amount added for Member ID: $member_id");
+                log_activity("Add Payment", "Payment of ₱$amount added for Student ID: $member_id");
             } else {
                 $errors[] = "Failed to record the payment. Please try again.";
             }
@@ -71,7 +71,7 @@
     $search_sql = "";
 
     if (!empty($search_query)) {
-        $search_sql = "WHERE p.payment_id LIKE ? OR p.member_id LIKE ? OR m.first_name LIKE ? OR m.last_name LIKE ? OR p.amount LIKE ? OR p.payment_date LIKE ?";
+        $search_sql = "WHERE p.payment_id LIKE ? OR p.member_id LIKE ?  OR m.first_name LIKE ? OR m.last_name LIKE ? OR p.amount LIKE ? OR p.payment_date LIKE ?";
     }
 
     // Fetch payments with search filter and pagination
@@ -209,8 +209,9 @@
                             <tr>
                                 <th>Payment ID</th>
                                 <th>Member Name</th>
-                                <th>Member ID</th>
+                                <th>Student ID</th>
                                 <th>Amount</th>
+                                <th>Fee Type</th>
                                 <th>Payment Date</th>
                             </tr>
                         </thead>
@@ -223,6 +224,7 @@
                                             <td><?php echo htmlspecialchars($payment['first_name'] . ' ' . $payment['last_name']); ?></td>
                                             <td><?php echo htmlspecialchars($payment['member_id']); ?></td>
                                             <td>₱<?php echo number_format($payment['amount'], 2); ?></td>
+                                            <td><?php echo htmlspecialchars($payment['fee_type']); ?></td>
                                             <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
                                         </tr>
                                     <?php endwhile; ?>

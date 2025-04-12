@@ -15,6 +15,12 @@
     require 'vendor/autoload.php'; // Include PhpSpreadsheet
     use PhpOffice\PhpSpreadsheet\IOFactory;
 
+    // Define fee types and their amounts
+    $fee_types = [
+        'INTEL FEE' => 100,
+        'Other' => 0 // This allows for custom fee types and amounts
+    ];
+
     // Handle form submission (Members + Fees)
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors = [];
@@ -81,12 +87,12 @@
             if (empty($member_id) || empty($last_name) || empty($first_name) || empty($fee_type) || $fee_amount <= 0 || empty($semester) || empty($school_year)) {
                 $errors[] = "Required fields are missing.";
             } elseif (!preg_match('/^\d{4}-\d{4}$/', $school_year)) {
-                $errors[] = "School year must be in the format 0000-0000.";
+                $errors[] = "School year must be in the format YYYY-YYYY.";
             } else {
                 // Additional validation to ensure it's strictly in 0000-0000 format
                 $years = explode('-', $school_year);
                 if (count($years) !== 2 || strlen($years[0]) !== 4 || strlen($years[1]) !== 4) {
-                    $errors[] = "School year must be in the format 0000-0000.";
+                    $errors[] = "School year must be in the format YYYY-YYYY.";
                 }
             }
     
@@ -335,7 +341,7 @@
                 <!-- Member Details -->
                 <div class="row mb-4">
                     <div class="col-md-3 mb-3">
-                        <label for="member_id" class="form-label required-field">Member ID</label>
+                        <label for="member_id" class="form-label required-field">Student ID</label>
                         <input type="text" class="form-control" id="member_id" name="member_id" value="<?php echo isset($_POST['member_id']) ? htmlspecialchars($_POST['member_id']) : ''; ?>" required>
                     </div>
                     <div class="col-md-3 mb-3">
@@ -376,7 +382,13 @@
                 <div class="row mb-4">
                     <div class="col-md-3">
                         <label for="fee_type" class="form-label required-field">Fee Type</label>
-                        <input type="text" class="form-control" id="fee_type" name="fee_type" placeholder="INTEL FEE" value="<?php echo isset($_POST['fee_type']) ? htmlspecialchars($_POST['fee_type']) : ''; ?>" required>
+                        <select class="form-select" id="fee_type" name="fee_type" required>
+                            <?php foreach ($fee_types as $type => $amount): ?>
+                                <option value="<?php echo htmlspecialchars($type); ?>" data-amount="<?php echo htmlspecialchars($amount); ?>" <?php echo (isset($_POST['fee_type']) && $_POST['fee_type'] == $type) ? 'selected' : ''; ?>>
+                                    <?php echo htmlspecialchars($type); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="col-md-3">
@@ -398,8 +410,8 @@
                     <div class="col-md-3">
                         <label for="school_year" class="form-label required-field">School Year</label>
                         <input type="text" class="form-control" id="school_year" name="school_year" 
-                               placeholder="0000-0000" pattern="\d{4}-\d{4}" 
-                               title="Please enter in the format 0000-0000" 
+                               placeholder="YYYY-YYYY" pattern="\d{4}-\d{4}" 
+                               title="Please enter in the format YYYY-YYYY" 
                                value="<?php echo isset($_POST['school_year']) ? htmlspecialchars($_POST['school_year']) : ''; ?>" required>
                     </div>
                 </div>
@@ -436,6 +448,31 @@
                 }
             }, 2500);
 
+            // Auto-fill fee amount based on fee type
+            const feeTypeSelect = document.getElementById('fee_type');
+            const feeAmountInput = document.getElementById('fee_amount');
+            
+            // Set initial value
+            updateFeeAmount();
+            
+            // Update when fee type changes
+            feeTypeSelect.addEventListener('change', updateFeeAmount);
+            
+            function updateFeeAmount() {
+                const selectedOption = feeTypeSelect.options[feeTypeSelect.selectedIndex];
+                const amount = selectedOption.getAttribute('data-amount');
+                feeAmountInput.value = amount;
+                
+                // Make fee amount readonly for predefined fees, editable for 'Other'
+                if (selectedOption.value === 'Other') {
+                    feeAmountInput.readOnly = false;
+                    feeAmountInput.value = '';
+                    feeAmountInput.focus();
+                } else {
+                    feeAmountInput.readOnly = true;
+                }
+            }
+
             const schoolYearInput = document.getElementById('school_year');
             
             schoolYearInput.addEventListener('input', function(e) {
@@ -459,7 +496,7 @@
                 // Set custom validity for form validation
                 const pattern = /^\d{4}-\d{4}$/;
                 if (!pattern.test(e.target.value)) {
-                    this.setCustomValidity('Please enter in the format 0000-0000');
+                    this.setCustomValidity('Please enter in the format YYYY-YYYY');
                 } else {
                     this.setCustomValidity('');
                 }

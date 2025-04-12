@@ -19,12 +19,13 @@
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $member_id = sanitize_input($_POST['member_id'] ?? '');
         $amounts = $_POST['amount'] ?? []; // Array of amounts
+        $fee_types = $_POST['fee_type'] ?? []; // Array of fee types
         $semesters = $_POST['semester'] ?? []; // Array of semesters
         $school_years = $_POST['school_year'] ?? []; // Array of school years
 
         // Validate inputs
         if (empty($member_id)) {
-            $errors[] = "Member ID is required.";
+            $errors[] = "Student ID is required.";
         }
 
         if (empty($amounts) || !is_array($amounts)) {
@@ -45,7 +46,7 @@
             $result = $stmt->get_result();
 
             if ($result->num_rows === 0) {
-                $errors[] = "Member ID does not exist.";
+                $errors[] = "Student ID does not exist.";
             } else {
                 $member = $result->fetch_assoc();
                 $member_name = $member['member_name'];
@@ -61,6 +62,7 @@
 
             try {
                 foreach ($amounts as $key => $amount) {
+                    $fee_type = sanitize_input($fee_types[$key] ?? 'Membership Fee');
                     $semester = sanitize_input($semesters[$key]);
                     $school_year = sanitize_input($school_years[$key]);
 
@@ -83,8 +85,8 @@
                     // Proceed only if payment covers the fee
                     if ($amount >= $fee_amount) {
                         // Insert payment record
-                        $stmt = $conn->prepare("INSERT INTO payments (member_id, amount, payment_date, semester, school_year) VALUES (?, ?, NOW(), ?, ?)");
-                        $stmt->bind_param("sdss", $member_id, $amount, $semester, $school_year);
+                        $stmt = $conn->prepare("INSERT INTO payments (member_id, fee_type, amount, payment_date, semester, school_year) VALUES (?, ?, ?, NOW(), ?, ?)");
+                        $stmt->bind_param("ssdss", $member_id, $fee_type, $amount, $semester, $school_year);
 
                         if ($stmt->execute()) {
                             $payment_id = $conn->insert_id;
@@ -105,7 +107,8 @@
                                     'payment_id' => $payment_id,
                                     'amount' => $amount,
                                     'semester' => $semester,
-                                    'school_year' => $school_year
+                                    'school_year' => $school_year,
+                                    'fee_type' => $fee_type
                                 ];
                             } else {
                                 throw new Exception("Failed to update fee status.");
@@ -126,8 +129,10 @@
                     'member_id' => $member_id,
                     'member_name' => $member_name,
                     'payments' => $receipt_data,
+                    
                     'payment_date' => date('Y-m-d H:i:s'),
                     'officer_id' => $officer_id
+
                 ];
                 
                 // Get officer name
@@ -242,8 +247,8 @@
             <div class="card-body">
                 <form id="memberLookupForm" class="row g-3 align-items-end">
                     <div class="col-md-6">
-                        <label for="lookup_member_id" class="form-label">Member ID</label>
-                        <input type="text" class="form-control" id="lookup_member_id" placeholder="Enter Member ID">
+                        <label for="lookup_member_id" class="form-label">Student ID</label>
+                        <input type="text" class="form-control" id="lookup_member_id" placeholder="Enter Student ID">
                     </div>
                     <div class="col-md-6">
                         <button type="button" id="lookupMemberBtn" class="btn btn-navy">
@@ -295,13 +300,17 @@
                 <form method="POST" action="add_payments.php" id="paymentForm" novalidate>
                     <div class="row mb-3">
                         <div class="col-md-4">
-                            <label for="member_id" class="form-label">Member ID</label>
+                            <label for="member_id" class="form-label">Student ID</label>
                             <input type="text" class="form-control" id="member_id" name="member_id" required>
                         </div>
                     </div>
 
                     <div id="paymentFields">
                         <div class="payment-entry row mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Fee Type</label>
+                                <input type="text" class="form-control" name="fee_type[]" placeholder="Membership Fee" required>
+                            </div>
                             <div class="col-md-3">
                                 <label class="form-label">Payment Amount (₱)</label>
                                 <input type="number" class="form-control" name="amount[]" min="0" step="0.01" required>
@@ -313,11 +322,11 @@
                                     <option value="2nd Semester">2nd Semester</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <label class="form-label">School Year</label>
                                 <input type="text" class="form-control" name="school_year[]" required>
                             </div>
-                            <div class="col-md-3 d-flex align-items-end">
+                            <div class="col-md-1 d-flex align-items-end">
                                 <button type="button" class="btn btn-danger remove-payment">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -346,6 +355,10 @@
             newEntry.classList.add("payment-entry", "row", "mb-3");
             newEntry.innerHTML = `
                 <div class="col-md-3">
+                    <label class="form-label">Fee Type</label>
+                    <input type="text" class="form-control" name="fee_type[]" placeholder="Membership Fee" required>
+                </div>
+                <div class="col-md-3">
                     <label class="form-label">Payment Amount (₱)</label>
                     <input type="number" class="form-control" name="amount[]" min="0" step="0.01" required>
                 </div>
@@ -356,11 +369,11 @@
                         <option value="2nd Semester">2nd Semester</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">School Year</label>
                     <input type="text" class="form-control" name="school_year[]" required>
                 </div>
-                <div class="col-md-3 d-flex align-items-end">
+                <div class="col-md-1 d-flex align-items-end">
                     <button type="button" class="btn btn-danger remove-payment"><i class="fas fa-trash"></i></button>
                 </div>
             `;
@@ -394,7 +407,7 @@
             document.getElementById("lookupMemberBtn").addEventListener("click", function() {
                 const memberId = document.getElementById("lookup_member_id").value.trim();
                 if (!memberId) {
-                    alert("Please enter a Member ID");
+                    alert("Please enter a Student ID");
                     return;
                 }
 
@@ -427,14 +440,18 @@
                                 // Only allow selection of unpaid fees
                                 const statusClass = fee.status === 'Paid' ? 'text-success' : 'text-danger';
                                 
+                                // Ensure fee_type has a default value if it's null or empty
+                                const feeType = fee.fee_type || 'Membership Fee';
+                                
                                 feesTableBody.innerHTML += `
                                     <tr>
                                         <td><input type="checkbox" class="fee-checkbox" 
                                             data-fee-id="${fee.member_id}" 
                                             data-amount="${fee.fee_amount}" 
                                             data-semester="${fee.semester}" 
-                                            data-school-year="${fee.school_year}"></td>
-                                        <td>${fee.fee_type}</td>
+                                            data-school-year="${fee.school_year}"
+                                            data-fee-type="${feeType}"></td>
+                                        <td>${feeType}</td>
                                         <td>${fee.semester}</td>
                                         <td>${fee.school_year}</td>
                                         <td>₱${fee.fee_amount}</td>
@@ -471,15 +488,22 @@
                     const amount = checkbox.getAttribute("data-amount");
                     const semester = checkbox.getAttribute("data-semester");
                     const schoolYear = checkbox.getAttribute("data-school-year");
-
+                    
+                    // Use a default if fee type is null, undefined, or empty string
+                    const feeType = checkbox.getAttribute("data-fee-type") || 'Membership Fee';
+                    
                     const newEntry = document.createElement("div");
                     newEntry.classList.add("payment-entry", "row", "mb-3");
                     newEntry.innerHTML = `
-                        <div class="col-md-3">
+                        <div class="col-md-2">
+                            <label class="form-label">Fee Type</label>
+                            <input type="text" class="form-control" name="fee_type[]" value="${feeType}" required>
+                        </div>
+                        <div class="col-md-2">
                             <label class="form-label">Payment Amount (₱)</label>
                             <input type="number" class="form-control" name="amount[]" min="0" step="0.01" value="${amount}" required>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">Semester</label>
                             <select class="form-select" name="semester[]" required>
                                 <option value="1st Semester" ${semester === '1st Semester' ? 'selected' : ''}>1st Semester</option>
@@ -490,7 +514,7 @@
                             <label class="form-label">School Year</label>
                             <input type="text" class="form-control" name="school_year[]" value="${schoolYear}" required>
                         </div>
-                        <div class="col-md-3 d-flex align-items-end">
+                        <div class="col-md-2 d-flex align-items-end">
                             <button type="button" class="btn btn-danger remove-payment"><i class="fas fa-trash"></i></button>
                         </div>
                     `;

@@ -12,6 +12,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
     $username = sanitize_input($_POST['username'] ?? '');
     $password = sanitize_input($_POST['password'] ?? '');
 
+    // Save username in a cookie for convenience (30 days expiration)
+    setcookie("last_username", $username, time() + (86400 * 30), "/");
+
     // Validate inputs  
     if (empty($username)) {
         $login_errors[] = "Username or ID is required.";
@@ -56,6 +59,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
         $stmt->close();
     }
 }
+
+// Retrieve last username from cookie if available
+$last_username = $_COOKIE['last_username'] ?? '';
 ?>
 
 <!DOCTYPE html>
@@ -139,7 +145,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
                         <form action="login.php" method="POST">
                             <div class="mb-3">
                                 <label for="username" class="form-label">ID or Username</label>
-                                <input type="text" class="form-control" id="username" name="username" required>
+                                <input type="text" class="form-control" id="username" name="username" value="<?php echo htmlspecialchars($last_username); ?>" required>
                             </div>
 
                             <div class="mb-3">

@@ -52,7 +52,7 @@
 
         // Validate inputs
         if (empty($member_id)) {
-            $errors[] = "Member ID is required.";
+            $errors[] = "Student ID is required.";
         }
 
         if (empty($first_name)) {

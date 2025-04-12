@@ -11,11 +11,17 @@
         exit();
     }
 
+    // Define fee types and their amounts
+    $fee_types = [
+        'INTEL FEE' => 100,
+        'Other' => 0 // This allows for custom fee types and amounts
+    ];
+
     // Handle form submission
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $semester = sanitize_input($_POST['semester'] ?? '');
         $school_year = sanitize_input($_POST['school_year'] ?? '');
-        $fee_type = sanitize_input($_POST['fee_type'] ?? 'Standard Fee');
+        $fee_type = sanitize_input($_POST['fee_type'] ?? 'INTEL FEE');
         $fee_amount = sanitize_input($_POST['fee_amount'] ?? '');
 
         // Validate inputs
@@ -27,12 +33,12 @@
         if (empty($school_year)) {
             $errors[] = "School year is required.";
         } elseif (!preg_match('/^[0-9]{4}-[0-9]{4}$/', $school_year)) {
-            $errors[] = "School year must be in the format 0000-0000.";
+            $errors[] = "School year must be in the format YYYY-YYYY.";
         } else {
             // Additional validation to ensure it's strictly in 0000-0000 format
             $years = explode('-', $school_year);
             if (count($years) !== 2 || strlen($years[0]) !== 4 || strlen($years[1]) !== 4) {
-                $errors[] = "School year must be in the format 0000-0000.";
+                $errors[] = "School year must be in the format YYYY-YYYY.";
             }
         }
         if (empty($fee_amount) || !is_numeric($fee_amount) || $fee_amount <= 0) {
@@ -182,7 +188,13 @@
 
                     <div class="col-md-3">
                         <label for="fee_type" class="form-label required-field">Fee Type</label>
-                        <input type="text" class="form-control" id="fee_type" name="fee_type" placeholder="INTEL FEE" required>
+                        <select class="form-select" id="fee_type" name="fee_type" required>
+                            <?php foreach ($fee_types as $type => $amount): ?>
+                                <option value="<?php echo htmlspecialchars($type); ?>" data-amount="<?php echo htmlspecialchars($amount); ?>">
+                                    <?php echo htmlspecialchars($type); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
 
                     <div class="col-md-3">
@@ -204,8 +216,8 @@
                     <div class="col-md-3">
                         <label for="school_year" class="form-label required-field">School Year</label>
                         <input type="text" class="form-control" id="school_year" name="school_year" 
-                               placeholder="0000-0000" pattern="[0-9]{4}-[0-9]{4}" 
-                               title="Please enter in the format 0000-0000" required>
+                               placeholder="YYYY-YYYY" pattern="[0-9]{4}-[0-9]{4}" 
+                               title="Please enter in the format YYYY-YYYY" required>
                     </div>
 
                     <div class="col-12 text-end">
@@ -222,7 +234,32 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
-            // Add client-side validation for school year format
+            // Auto-fill fee amount based on fee type
+            const feeTypeSelect = document.getElementById('fee_type');
+            const feeAmountInput = document.getElementById('fee_amount');
+            
+            // Set initial value
+            updateFeeAmount();
+            
+            // Update when fee type changes
+            feeTypeSelect.addEventListener('change', updateFeeAmount);
+            
+            function updateFeeAmount() {
+                const selectedOption = feeTypeSelect.options[feeTypeSelect.selectedIndex];
+                const amount = selectedOption.getAttribute('data-amount');
+                feeAmountInput.value = amount;
+                
+                // Make fee amount readonly for predefined fees, editable for 'Other'
+                if (selectedOption.value === 'Other') {
+                    feeAmountInput.readOnly = false;
+                    feeAmountInput.value = '';
+                    feeAmountInput.focus();
+                } else {
+                    feeAmountInput.readOnly = true;
+                }
+            }
+            
+            // School year format validation
             const schoolYearInput = document.getElementById('school_year');
             
             schoolYearInput.addEventListener('input', function(e) {
