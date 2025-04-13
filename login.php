@@ -47,7 +47,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
               $_SESSION['member_id'] = $user['member_id'];
       
               log_activity('Login', "User logged in successfully", $user['officer_id']);
-              header("Location: dashboard.php");
+              header("Location: index.php");
               exit();
           } else {
               $login_errors[] = "Incorrect password.";

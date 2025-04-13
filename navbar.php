@@ -29,7 +29,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-navy shadow">
         <div class="container">
             <!-- Logo & Brand (Left) -->
-            <a class="navbar-brand d-flex align-items-center me-5" href="dashboard.php">
+            <a class="navbar-brand d-flex align-items-center me-5" href="index.php">
                 <img src="images/intel.png" alt="Logo" style="width: 90px; height: 50px;">
             </a>
 
@@ -43,7 +43,7 @@
                 <div class="mx-auto">
                     <ul class="navbar-nav gap-5 ms-5">
                         <li class="nav-item">
-                            <a class="nav-link <?php echo ($current_page == 'dashboard.php') ? 'active' : ''; ?>" href="dashboard.php">
+                            <a class="nav-link <?php echo ($current_page == 'index.php') ? 'active' : ''; ?>" href="index.php">
                                 <i class="fas fa-home me-1"></i> Dashboard
                             </a>
                         </li>
