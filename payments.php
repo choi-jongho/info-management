@@ -1,7 +1,7 @@
 <?php
     session_start();
 
-    // Check if officer is logged in
+    // Check if officer is logged in  
     $officer_id = $_SESSION['officer_id'] ?? null;
     if (!$officer_id) {
         // Officer not logged in, redirect to login page
@@ -19,6 +19,7 @@
     if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $member_id = sanitize_input($_POST['member_id'] ?? '');
         $amount = sanitize_input($_POST['amount'] ?? '');
+        $fee_type = sanitize_input($_POST['fee_type'] ?? ''); // Add fee_type field
 
         // Validate input
         if (empty($member_id)) {
@@ -29,6 +30,10 @@
             $errors[] = "Payment amount is required.";
         } elseif (!is_numeric($amount) || $amount <= 0) {
             $errors[] = "Payment amount must be a positive number.";
+        }
+
+        if (empty($fee_type)) {
+            $errors[] = "Fee type is required.";
         }
 
         // Check if member exists
@@ -47,12 +52,12 @@
 
         // Add payment if no errors
         if (empty($errors)) {
-            $stmt = $conn->prepare("INSERT INTO payments (member_id, fee_type, amount, payment_date) VALUES (?, ?, NOW())");
+            $stmt = $conn->prepare("INSERT INTO payments (member_id, fee_type, amount, payment_date) VALUES (?, ?, ?, NOW())");
             $stmt->bind_param("ssd", $member_id, $fee_type, $amount);
 
             if ($stmt->execute()) {
                 $success = true;
-                log_activity("Add Payment", "Payment of ₱$amount added for Student ID: $member_id");
+                log_activity("Add Payment", "Payment of ₱$amount added for Student ID: $member_id with fee type: $fee_type");
             } else {
                 $errors[] = "Failed to record the payment. Please try again.";
             }
@@ -71,10 +76,10 @@
     $search_sql = "";
 
     if (!empty($search_query)) {
-        $search_sql = "WHERE p.payment_id LIKE ? OR p.member_id LIKE ?  OR m.first_name LIKE ? OR m.last_name LIKE ? OR p.amount LIKE ? OR p.payment_date LIKE ?";
+        $search_sql = "WHERE p.payment_id LIKE ? OR p.member_id LIKE ? OR m.first_name LIKE ? OR m.last_name LIKE ? OR p.fee_type LIKE ? OR p.amount LIKE ? OR p.payment_date LIKE ?";
     }
 
-    // Fetch payments with search filter and pagination
+    // Fetch payments with search filter and pagination  
     $stmt = $conn->prepare("SELECT p.*, m.first_name, m.last_name FROM payments p 
                             JOIN members m ON p.member_id = m.member_id 
                             $search_sql
@@ -82,7 +87,8 @@
                             LIMIT ?, ?");
     if (!empty($search_query)) {
         $search_param = "%" . $search_query . "%";
-        $stmt->bind_param("ssssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $offset, $payments_per_page);
+        // Fixed: Changed from ssssssii to sssssssii for correct parameter binding
+        $stmt->bind_param("sssssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $offset, $payments_per_page);
     } else {
         $stmt->bind_param("ii", $offset, $payments_per_page);
     }
@@ -95,7 +101,8 @@
                                         JOIN members m ON p.member_id = m.member_id 
                                         $search_sql");
     if (!empty($search_query)) {
-        $total_payments_stmt->bind_param("ssssss", $search_param, $search_param, $search_param, $search_param, $search_param, $search_param);
+        // Fixed: Changed from ssssss to sssssss for correct parameter binding
+        $total_payments_stmt->bind_param("sssssss", $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param);
     }
     $total_payments_stmt->execute();
     $total_payments = $total_payments_stmt->get_result()->fetch_assoc()['count'];
@@ -232,13 +239,13 @@
                                 <?php else: ?>
                                     <!-- Display 'No results found' when no matches for search -->
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">No results found</td>
+                                        <td colspan="6" class="text-center text-muted">No results found</td>
                                     </tr>
                                 <?php endif; ?>
                             <?php else: ?>
                                 <!-- Display 'No payments found' if there are no payments at all -->
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted">No payments found</td>
+                                    <td colspan="6" class="text-center text-muted">No payments found</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
