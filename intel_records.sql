@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 12, 2025 at 10:28 PM
+-- Generation Time: Apr 17, 2025 at 02:57 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -733,7 +733,20 @@ INSERT INTO `activity_logs` (`log_id`, `officer_id`, `action`, `description`, `d
 (859, 'intel_pres', 'Add Payment', 'Payment of ₱100 added for Member: Marilyn Asebto (ID: 2023-55472), Semester: 2nd Semester, SY: 2022-2023', '2025-04-12 20:23:39'),
 (860, 'intel_pres', 'Update Fee Status', 'Updated fee status to Paid for Member: Marilyn Asebto (ID: 2023-55472), Semester: 2nd Semester, SY: 2022-2023', '2025-04-12 20:23:39'),
 (861, 'intel_pres', 'Member Deletion', 'Member Marilyn Asebto (ID: 2023-55472) (Deleted by officer: intel_pres)', '2025-04-12 20:23:51'),
-(862, 'intel_pres', 'Member Restoration', 'Member Marilyn Asebto (ID: 2023-55472) was restored.', '2025-04-12 20:23:59');
+(862, 'intel_pres', 'Member Restoration', 'Member Marilyn Asebto (ID: 2023-55472) was restored.', '2025-04-12 20:23:59'),
+(863, 'intel_pres', 'Login', 'User logged in successfully', '2025-04-17 12:25:29'),
+(866, 'intel_pres', 'Add Payment', 'Payment of ₱100 added for Member: Tricia Edloy (ID: 2025-65423), Semester: 2nd Semester, SY: 2023-2024', '2025-04-17 12:27:13'),
+(867, 'intel_pres', 'Update Fee Status', 'Updated fee status to Paid for Member: Tricia Edloy (ID: 2025-65423), Semester: 2nd Semester, SY: 2023-2024', '2025-04-17 12:27:13'),
+(868, 'intel_pres', 'Add Payment', 'Payment of ₱100 added for Member: Tricia Edloy (ID: 2025-65423), Semester: 1st Semester, SY: 2023-2024', '2025-04-17 12:27:13'),
+(869, 'intel_pres', 'Update Fee Status', 'Updated fee status to Paid for Member: Tricia Edloy (ID: 2025-65423), Semester: 1st Semester, SY: 2023-2024', '2025-04-17 12:27:13'),
+(870, 'intel_pres', 'Status Update', 'Member Tricia Edloy (ID: 2025-65423) marked as active due to having less than 3 unpaid fees', '2025-04-17 12:27:32'),
+(871, 'intel_pres', 'Batch Status Update', 'Updated 1 members to active status due to having less than 3 unpaid fees', '2025-04-17 12:27:32'),
+(872, 'intel_pres', 'Member Deletion', 'Member Tricia Edloy (ID: 2025-65423) (Deleted by officer: intel_pres)', '2025-04-17 12:28:03'),
+(873, 'intel_pres', 'Member Restoration', 'Member Tricia Edloy (ID: 2025-65423) was restored.', '2025-04-17 12:28:10'),
+(874, 'intel_pres', 'Member Deletion', 'Member Adrian Lim (ID: 2023-11112) (Deleted by officer: intel_pres)', '2025-04-17 12:30:50'),
+(875, 'intel_pres', 'Import Member', 'Imported member: Adrian Lim (ID: 2023-11112)', '2025-04-17 12:31:19'),
+(876, 'intel_pres', 'Add Fees', 'Added fee: INTEL FEE (₱100) for Semester: 1st Semester, SY: 2023-2024', '2025-04-17 12:31:37'),
+(877, 'intel_pres', 'Add Member', 'Added member: Arneil Lopez (ID: 2023-01234)', '2025-04-17 12:35:05');
 
 -- --------------------------------------------------------
 
@@ -758,7 +771,8 @@ CREATE TABLE `deleted_members` (
 --
 
 INSERT INTO `deleted_members` (`deletion_id`, `member_id`, `description`, `member_data`, `fees_data`, `payments_data`, `receipts_data`, `deleted_by`, `deletion_date`) VALUES
-(14, '2025-09457', 'Member Kent Coricor (ID: 2025-09457)', '{\"member_id\":\"2025-09457\",\"last_name\":\"Coricor\",\"first_name\":\"Kent\",\"middle_name\":\"Roberts\",\"contact_num\":\"9446889121\",\"email\":\"coricor.robert@evsu.edu.ph\",\"status\":\"Active\",\"membership_date\":\"2025-04-13 03:05:25\"}', '[{\"member_id\":\"2025-09457\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"2nd semester\",\"school_year\":\"2025-2026\",\"status\":\"Unpaid\"},{\"member_id\":\"2025-09457\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"1st Semester\",\"school_year\":\"2023-2024\",\"status\":\"Paid\"},{\"member_id\":\"2025-09457\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"2nd Semester\",\"school_year\":\"2023-2024\",\"status\":\"Unpaid\"}]', '[{\"payment_id\":101,\"member_id\":\"2025-09457\",\"fee_type\":\"INTEL FEE\",\"amount\":\"100.00\",\"semester\":\"1st Semester\",\"school_year\":\"2023-2024\",\"payment_date\":\"2025-04-13 03:56:24\"}]', '[]', 'intel_pres', '2025-04-12 19:58:16');
+(14, '2025-09457', 'Member Kent Coricor (ID: 2025-09457)', '{\"member_id\":\"2025-09457\",\"last_name\":\"Coricor\",\"first_name\":\"Kent\",\"middle_name\":\"Roberts\",\"contact_num\":\"9446889121\",\"email\":\"coricor.robert@evsu.edu.ph\",\"status\":\"Active\",\"membership_date\":\"2025-04-13 03:05:25\"}', '[{\"member_id\":\"2025-09457\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"2nd semester\",\"school_year\":\"2025-2026\",\"status\":\"Unpaid\"},{\"member_id\":\"2025-09457\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"1st Semester\",\"school_year\":\"2023-2024\",\"status\":\"Paid\"},{\"member_id\":\"2025-09457\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"2nd Semester\",\"school_year\":\"2023-2024\",\"status\":\"Unpaid\"}]', '[{\"payment_id\":101,\"member_id\":\"2025-09457\",\"fee_type\":\"INTEL FEE\",\"amount\":\"100.00\",\"semester\":\"1st Semester\",\"school_year\":\"2023-2024\",\"payment_date\":\"2025-04-13 03:56:24\"}]', '[]', 'intel_pres', '2025-04-12 19:58:16'),
+(21, '2023-11112', 'Member Adrian Lim (ID: 2023-11112)', '{\"member_id\":\"2023-11112\",\"last_name\":\"Lim\",\"first_name\":\"Adrian\",\"middle_name\":\"Ty\",\"contact_num\":\"9216579012\",\"email\":\"adrian@gmail.com\",\"status\":\"Inactive\",\"membership_date\":\"2025-04-13 03:05:25\"}', '[{\"member_id\":\"2023-11112\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"1st semester\",\"school_year\":\"2025-2026\",\"status\":\"Unpaid\"},{\"member_id\":\"2023-11112\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"1st Semester\",\"school_year\":\"2023-2024\",\"status\":\"Unpaid\"},{\"member_id\":\"2023-11112\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"2nd Semester\",\"school_year\":\"2023-2024\",\"status\":\"Unpaid\"},{\"member_id\":\"2023-11112\",\"fee_amount\":100,\"fee_type\":\"INTEL FEE\",\"semester\":\"2nd Semester\",\"school_year\":\"2022-2023\",\"status\":\"Unpaid\"}]', '[]', '[]', 'intel_pres', '2025-04-17 12:30:50');
 
 -- --------------------------------------------------------
 
@@ -799,29 +813,29 @@ INSERT INTO `fees` (`member_id`, `fee_amount`, `fee_type`, `semester`, `school_y
 ('2024-09234', 100, 'INTEL FEE', '1st Semester', '2025-2026', 'Paid'),
 ('2024-09234', 100, 'INTEL FEE', '1st Semester', '2024-2025', 'Unpaid'),
 ('2025-77643', 100, 'INTEL FEE', '1st semester', '2025-2026', 'Unpaid'),
-('2023-11112', 100, 'INTEL FEE', '1st semester', '2025-2026', 'Unpaid'),
 ('2024-10742', 100, 'INTEL FEE', '1st Semester', '2022-2023', 'Paid'),
 ('2024-10742', 100, 'INTEL FEE', '2nd Semester', '2022-2023', 'Paid'),
 ('2024-10742', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid'),
 ('2024-10742', 100, 'INTEL FEE', '2nd Semester', '2023-2024', 'Unpaid'),
 ('2024-10742', 100, 'INTEL FEE', '1st Semester', '2025-2026', 'Unpaid'),
 ('2024-10742', 100, 'INTEL FEE', '1st Semester', '2024-2025', 'Unpaid'),
-('2025-65423', 100, 'INTEL FEE', '1st semester', '2025-2026', 'Paid'),
-('2023-11112', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid'),
-('2025-65423', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid'),
 ('2025-77643', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Paid'),
-('2023-11112', 100, 'INTEL FEE', '2nd Semester', '2023-2024', 'Unpaid'),
-('2025-65423', 100, 'INTEL FEE', '2nd Semester', '2023-2024', 'Unpaid'),
 ('2025-77643', 100, 'INTEL FEE', '2nd Semester', '2023-2024', 'Paid'),
 ('2025-09457', 100, 'INTEL FEE', '2nd semester', '2025-2026', 'Paid'),
-('2023-11112', 100, 'INTEL FEE', '2nd Semester', '2022-2023', 'Unpaid'),
 ('2025-09457', 100, 'INTEL FEE', '2nd Semester', '2022-2023', 'Unpaid'),
-('2025-65423', 100, 'INTEL FEE', '2nd Semester', '2022-2023', 'Unpaid'),
 ('2025-77643', 100, 'INTEL FEE', '2nd Semester', '2022-2023', 'Unpaid'),
 ('2023-55472', 100, 'INTEL FEE', '1st semester', '2025-2026', 'Paid'),
 ('2023-55472', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Paid'),
 ('2023-55472', 100, 'INTEL FEE', '2nd Semester', '2023-2024', 'Paid'),
-('2023-55472', 100, 'INTEL FEE', '2nd Semester', '2022-2023', 'Paid');
+('2023-55472', 100, 'INTEL FEE', '2nd Semester', '2022-2023', 'Paid'),
+('2025-65423', 100, 'INTEL FEE', '1st semester', '2025-2026', 'Paid'),
+('2025-65423', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Paid'),
+('2025-65423', 100, 'INTEL FEE', '2nd Semester', '2023-2024', 'Paid'),
+('2025-65423', 100, 'INTEL FEE', '2nd Semester', '2022-2023', 'Unpaid'),
+('2023-11112', 100, 'INTEL FEE', '1st semester', '2025-2026', 'Unpaid'),
+('2023-11112', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid'),
+('2025-09457', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid'),
+('2023-01234', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid');
 
 -- --------------------------------------------------------
 
@@ -846,9 +860,10 @@ CREATE TABLE `members` (
 
 INSERT INTO `members` (`member_id`, `last_name`, `first_name`, `middle_name`, `contact_num`, `email`, `status`, `membership_date`) VALUES
 ('2023-00002', 'Molboco', 'Raymart', '', '09556754213', 'raymart@gmail.com', 'Inactive', '2025-04-11 08:24:09'),
+('2023-01234', 'Lopez', 'Arneil', 'Gagante', '09661225372', 'arneil.lopez@gmail.com', 'Active', '2025-04-17 12:35:05'),
 ('2023-04321', 'Hersan', 'Zhen Mae', '', '0912457689', 'zhenmae.hersan@evsu.edu.ph', 'Active', '2025-04-04 09:57:57'),
 ('2023-10982', 'Cainong', 'Phil Sebastian', '', '09662985421', 'philsebastian.cainong@evsu.edu.ph', 'Active', '2025-04-04 09:57:57'),
-('2023-11112', 'Lim', 'Adrian', 'Ty', '9216579012', 'adrian@gmail.com', 'Inactive', '2025-04-12 19:05:25'),
+('2023-11112', 'Lim', 'Adrian', 'Ty', '9216579012', 'adrian@gmail.com', 'Active', '2025-04-17 12:31:19'),
 ('2023-11780', 'Narbonita', 'Leonice', 'Poblete', '09123456789', 'leonice.narbonita@evsu.edu.ph', 'Active', '2025-04-04 09:57:57'),
 ('2023-55472', 'Asebto', 'Marilyn', 'Arpon', '9235678234', 'marilyn@evsu.edu.ph', 'Active', '2025-04-12 19:09:57'),
 ('2023-62721', 'Lazarte', 'David', '', '09654367128', 'david.lazarte@evsu.ph', 'Inactive', '2025-04-04 13:42:53'),
@@ -856,7 +871,7 @@ INSERT INTO `members` (`member_id`, `last_name`, `first_name`, `middle_name`, `c
 ('2024-10742', 'Lopez', 'John Michael', 'Arias', '9830913481', 'jmlopez@gmail.com', 'Inactive', '2025-04-04 09:57:57'),
 ('2024-19243', 'Busante', 'Jonah May', 'Nalnalucab', '09452317865', 'jonahmay.busante@evsu.edu.ph', 'Active', '2025-04-04 13:57:22'),
 ('2025-09457', 'Coricor', 'Kent', 'Roberts', '9446889121', 'coricor.robert@evsu.edu.ph', 'Active', '2025-04-12 19:58:26'),
-('2025-65423', 'Edloy', 'Tricia', '', '9541256970', 'tricia@evsu.edu.ph', 'Inactive', '2025-04-12 19:04:38'),
+('2025-65423', 'Edloy', 'Tricia', '', '9541256970', 'tricia@evsu.edu.ph', 'Active', '2025-04-12 19:04:38'),
 ('2025-77643', 'Beros', 'Andreia', 'Cainong', '9662349082', 'beros.andreia@evsu.edu.ph', 'Active', '2025-04-12 19:05:25');
 
 -- --------------------------------------------------------
@@ -938,7 +953,9 @@ INSERT INTO `payments` (`payment_id`, `member_id`, `fee_type`, `amount`, `semest
 (105, '2023-55472', 'INTEL FEE', 100.00, '2nd Semester', '2023-2024', '2025-04-13 04:11:09'),
 (106, '2025-77643', 'INTEL FEE', 100.00, '2nd Semester', '2023-2024', '2025-04-13 04:11:46'),
 (107, '2025-77643', 'INTEL FEE', 100.00, '1st Semester', '2023-2024', '2025-04-13 04:11:58'),
-(108, '2023-55472', 'INTEL FEE', 100.00, '2nd Semester', '2022-2023', '2025-04-13 04:23:39');
+(108, '2023-55472', 'INTEL FEE', 100.00, '2nd Semester', '2022-2023', '2025-04-13 04:23:39'),
+(110, '2025-65423', 'INTEL FEE', 100.00, '2nd Semester', '2023-2024', '2025-04-17 20:27:13'),
+(111, '2025-65423', 'INTEL FEE', 100.00, '1st Semester', '2023-2024', '2025-04-17 20:27:13');
 
 -- --------------------------------------------------------
 
@@ -972,7 +989,8 @@ INSERT INTO `receipts` (`receipt_id`, `payment_id`, `member_id`, `officer_id`, `
 ('RCPT67fac24e96d6f', 88, '2025-65423', 'intel_pres', 100.00, '2025-04-13 03:43:10'),
 ('RCPT67fac95963ef1', 103, '2023-55472', 'intel_pres', 100.00, '2025-04-13 04:13:13'),
 ('RCPT67facbf9e8876', 108, '2023-55472', 'intel_pres', 100.00, '2025-04-13 04:24:25'),
-('RCPT67facc88cde82', 107, '2025-77643', 'intel_pres', 100.00, '2025-04-13 04:26:48');
+('RCPT67facc88cde82', 107, '2025-77643', 'intel_pres', 100.00, '2025-04-13 04:26:48'),
+('RCPT6800f3f8a8348', 110, '2025-65423', 'intel_pres', 100.00, '2025-04-17 20:28:40');
 
 -- --------------------------------------------------------
 
@@ -1070,19 +1088,19 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=863;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=878;
 
 --
 -- AUTO_INCREMENT for table `deleted_members`
 --
 ALTER TABLE `deleted_members`
-  MODIFY `deletion_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `deletion_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=112;
 
 --
 -- Constraints for dumped tables
