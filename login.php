@@ -1,67 +1,67 @@
 <?php
-require_once('database.php');
-require_once('functions.php');
+    require_once('database.php');
+    require_once('functions.php');
 
-// Start session
-session_start();
+    // Start session
+    session_start();
 
-$login_errors = [];
+    $login_errors = [];
 
-// Handle login form submission
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
-    $username = sanitize_input($_POST['username'] ?? '');
-    $password = sanitize_input($_POST['password'] ?? '');
+    // Handle login form submission
+    if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['login'])) {
+        $username = sanitize_input($_POST['username'] ?? '');
+        $password = sanitize_input($_POST['password'] ?? '');
 
-    // Save username in a cookie for convenience (30 days expiration)
-    setcookie("last_username", $username, time() + (86400 * 30), "/");
+        // Save username in a cookie for convenience (30 days expiration)
+        setcookie("last_username", $username, time() + (86400 * 30), "/");
 
-    // Validate inputs  
-    if (empty($username)) {
-        $login_errors[] = "Username or ID is required.";
-    }
-    if (empty($password)) {
-        $login_errors[] = "Password is required.";
-    }
-
-    // If no errors, proceed with authentication
-    if (empty($login_errors)) {
-        $stmt = $conn->prepare("
-            SELECT o.officer_id, o.username, o.password, m.member_id, r.role_id 
-            FROM officers o
-            LEFT JOIN members m ON o.member_id = m.member_id
-            LEFT JOIN role r ON o.role_id = r.role_id
-            WHERE o.username = ? OR o.officer_id = ? OR m.member_id = ? OR r.role_id = ?
-          ");
-        $stmt->bind_param("ssss", $username, $username, $username, $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result->num_rows > 0) {
-          $user = $result->fetch_assoc();
-      
-          if (password_verify($password, $user['password'])) {
-              // Successful login—store session variables
-              $_SESSION['officer_id'] = $user['officer_id'];
-              $_SESSION['username'] = $user['username'];
-              $_SESSION['role_id'] = $user['role_id'];
-              $_SESSION['member_id'] = $user['member_id'];
-      
-              log_activity('Login', "User logged in successfully", $user['officer_id']);
-              header("Location: index.php");
-              exit();
-          } else {
-              $login_errors[] = "Incorrect password.";
-          }
-        } else {
-            $login_errors[] = "Username not found.";
+        // Validate inputs  
+        if (empty($username)) {
+            $login_errors[] = "Username or ID is required.";
+        }
+        if (empty($password)) {
+            $login_errors[] = "Password is required.";
         }
 
-        $stmt->close();
-    }
-}
+        // If no errors, proceed with authentication
+        if (empty($login_errors)) {
+            $stmt = $conn->prepare("
+                SELECT o.officer_id, o.username, o.password, m.member_id, r.role_id 
+                FROM officers o
+                LEFT JOIN members m ON o.member_id = m.member_id
+                LEFT JOIN role r ON o.role_id = r.role_id
+                WHERE o.username = ? OR o.officer_id = ? OR m.member_id = ? OR r.role_id = ?
+            ");
+            $stmt->bind_param("ssss", $username, $username, $username, $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
 
-// Retrieve last username from cookie if available
-$last_username = $_COOKIE['last_username'] ?? '';
+            if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+        
+            if (password_verify($password, $user['password'])) {
+                // Successful login—store session variables
+                $_SESSION['officer_id'] = $user['officer_id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role_id'] = $user['role_id'];
+                $_SESSION['member_id'] = $user['member_id'];
+        
+                log_activity('Login', "User logged in successfully", $user['officer_id']);
+                header("Location: index.php");
+                exit();
+            } else {
+                $login_errors[] = "Incorrect password.";
+            }
+            } else {
+                $login_errors[] = "Username not found.";
+            }
+
+            $stmt->close();
+        }
+    }
+
+    // Retrieve last username from cookie if available
+    $last_username = $_COOKIE['last_username'] ?? '';
 ?>
 
 <!DOCTYPE html>
