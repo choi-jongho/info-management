@@ -364,8 +364,9 @@
             text-align: center;
             margin: 0 3px;
         }
-        .pagination {
-            margin-bottom: 0;
+        .pagination .page-item.active .page-link {
+            background-color: #001f3f;
+            border-color: #001f3f;
         }
         .no-results {
             text-align: center;
