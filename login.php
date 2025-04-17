@@ -47,7 +47,7 @@
                 $_SESSION['member_id'] = $user['member_id'];
         
                 log_activity('Login', "User logged in successfully", $user['officer_id']);
-                header("Location: index.php");
+                header("Location: dashboard.php");
                 exit();
             } else {
                 $login_errors[] = "Incorrect password.";
