@@ -253,9 +253,9 @@
                 </div>
                 <!-- Pagination -->
                 <?php if ($total_pages > 1): ?>
-                    <div class="d-flex justify-content-between align-items-center mt-4">
+                    <div class="d-flex justify-content-between align-items-center mt-4" id="paginationContainer" <?php echo ($total_pages <= 1) ? 'style="display: none;"' : ''; ?>>
                         <div>
-                            <p class="text-muted">
+                            <p class="text-muted" id="paginationInfo">
                                 Showing <?php echo $display_start; ?> to <?php echo $display_end; ?> of <?php echo $total_payments; ?> payments
                             </p>
                         </div>
@@ -297,6 +297,87 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function(){
+            // Function to update pagination display
+            function updatePagination(paginationData) {
+                if (!paginationData) return;
+                
+                // Update the "Showing X to Y of Z payments" text
+                $('.text-muted:first').text(
+                    `Showing ${paginationData.display_start} to ${paginationData.display_end} of ${paginationData.total_payments} payments`
+                );
+                
+                // Update pagination links
+                const paginationContainer = $('.pagination');
+                paginationContainer.empty();
+                
+                // Previous button
+                paginationContainer.append(`
+                    <li class="page-item ${paginationData.current_page <= 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="?page=${paginationData.current_page - 1}&search=${encodeURIComponent($('#searchBar').val())}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                `);
+                
+                // Page numbers
+                for (let i = Math.max(1, paginationData.current_page - 2); i <= Math.min(paginationData.current_page + 2, paginationData.total_pages); i++) {
+                    paginationContainer.append(`
+                        <li class="page-item ${paginationData.current_page == i ? 'active' : ''}">
+                            <a class="page-link" href="?page=${i}&search=${encodeURIComponent($('#searchBar').val())}">${i}</a>
+                        </li>
+                    `);
+                }
+                
+                // Next button
+                paginationContainer.append(`
+                    <li class="page-item ${paginationData.current_page >= paginationData.total_pages ? 'disabled' : ''}">
+                        <a class="page-link" href="?page=${paginationData.current_page + 1}&search=${encodeURIComponent($('#searchBar').val())}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                `);
+            }
+            
+            // Function to fetch payments
+            function fetchPayments(query, page = 1) {
+                $.ajax({
+                    url: "fetch_payments.php",
+                    method: "GET",
+                    data: { 
+                        search: query,
+                        page: page,
+                        update_pagination: 1
+                    },
+                    beforeSend: function() {
+                        $("#paymentTableBody").html('<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
+                    },
+                    success: function(response) {
+                        const parts = response.split("||PAGINATION||");
+                        const tableContent = parts[0];
+                        const paginationData = parts[1] ? JSON.parse(parts[1]) : null;
+                        
+                        $("#paymentTableBody").html(tableContent);
+                        
+                        // Update pagination if data is available
+                        if (paginationData) {
+                            updatePagination(paginationData);
+                            
+                            // Show/hide pagination section based on total pages
+                            if (paginationData.total_pages > 1) {
+                                $('.d-flex.justify-content-between').show();
+                            } else {
+                                $('.d-flex.justify-content-between').hide();
+                            }
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("Error fetching payments:", error);
+                        $("#paymentTableBody").html('<tr><td colspan="6" class="text-center text-danger">Error loading data. Please try again.</td></tr>');
+                    }
+                });
+            }
+            
+            // Search on keyup without debouncing
             $("#searchBar").on("keyup", function() {
                 var query = $(this).val();
                 $.ajax({
@@ -307,6 +388,24 @@
                         $("#paymentTableBody").html(response); // Update table dynamically
                     }
                 });
+            });
+            
+            // Handle direct pagination clicks
+            $(document).on('click', '.pagination .page-link', function(e) {
+                e.preventDefault();
+                const href = $(this).attr('href');
+                const urlParams = new URLSearchParams(href.split('?')[1]);
+                const page = urlParams.get('page');
+                const search = urlParams.get('search') || '';
+                
+                fetchPayments(search, page);
+            });
+            
+            // Handle form submission (prevent default)
+            $('form').on('submit', function(e) {
+                e.preventDefault();
+                const query = $('#searchBar').val();
+                fetchPayments(query, 1);
             });
         });
     </script>
