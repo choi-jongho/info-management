@@ -30,7 +30,7 @@
         <div class="container">
             <!-- Logo & Brand (Left) -->
             <a class="navbar-brand d-flex align-items-center me-5" href="index.php">
-                <img src="images/intel.png" alt="Logo" style="width: 90px; height: 50px;">
+                <img src="images/intel.png" alt="Logo" style="width: 75px; height: 40px;">
             </a>
 
             <!-- Mobile Toggle Button -->
