@@ -548,7 +548,7 @@
                                                     </div>
                                                     <div class="modal-body">
                                                         <p>Are you sure you want to delete member <strong><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></strong>?</p>
-                                                        <p class="text-danger"><small>This action cannot be undone.</small></p>
+                                                        <p class="text-danger"><small>You can restore them in the activity logs.</small></p>
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
