@@ -352,22 +352,27 @@
                         $("#paymentTableBody").html('<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
                     },
                     success: function(response) {
-                        const parts = response.split("||PAGINATION||");
-                        const tableContent = parts[0];
-                        const paginationData = parts[1] ? JSON.parse(parts[1]) : null;
-                        
-                        $("#paymentTableBody").html(tableContent);
-                        
-                        // Update pagination if data is available
-                        if (paginationData) {
-                            updatePagination(paginationData);
+                        try {
+                            const parts = response.split("||PAGINATION||");
+                            const tableContent = parts[0];
+                            const paginationData = parts[1] ? JSON.parse(parts[1]) : null;
                             
-                            // Show/hide pagination section based on total pages
-                            if (paginationData.total_pages > 1) {
-                                $('.d-flex.justify-content-between').show();
-                            } else {
-                                $('.d-flex.justify-content-between').hide();
+                            $("#paymentTableBody").html(tableContent);
+                            
+                            // Update pagination if data is available
+                            if (paginationData) {
+                                updatePagination(paginationData);
+                                
+                                // Show/hide pagination section based on total pages
+                                if (paginationData.total_pages > 1) {
+                                    $('#paginationContainer').show();
+                                } else {
+                                    $('#paginationContainer').hide();
+                                }
                             }
+                        } catch (e) {
+                            console.error("Error parsing response:", e);
+                            $("#paymentTableBody").html('<tr><td colspan="6" class="text-center text-danger">Error processing data. Please try again.</td></tr>');
                         }
                     },
                     error: function(xhr, status, error) {
