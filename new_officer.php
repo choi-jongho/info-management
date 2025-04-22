@@ -221,7 +221,7 @@
                 </div>
 
                 <div class="d-flex justify-content-end mt-4">
-                    <a href="members.php" class="btn btn-secondary me-2">
+                    <a href="officer_list.php" class="btn btn-secondary me-2">
                         <i class="fas fa-times me-1"></i> Cancel
                     </a>
                     <button type="submit" class="btn btn-navy">
