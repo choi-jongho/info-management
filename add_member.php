@@ -21,6 +21,16 @@
         'Other' => 0 // This allows for custom fee types and amounts
     ];
 
+    // Function to properly capitalize names (first letter uppercase, rest lowercase)
+    function properCase($string) {
+        // Trim the string and ensure it's not empty
+        $string = trim($string);
+        if (empty($string)) return '';
+        
+        // Convert the first character to uppercase and the rest to lowercase
+        return ucfirst(strtolower($string));
+    }
+
     // Handle form submission (Members + Fees)
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $errors = [];
@@ -72,11 +82,12 @@
         if (!isset($_FILES["fileToUpload"]) || $_FILES["fileToUpload"]["size"] == 0) {
             // Validate form inputs (only when form fields are submitted)
             $member_id = cleanInput($_POST['member_id'] ?? '');
-            $last_name = cleanInput($_POST['last_name'] ?? '');
-            $first_name = cleanInput($_POST['first_name'] ?? '');
-            $middle_name = cleanInput($_POST['middle_name'] ?? '');
+            // Apply proper case formatting to names
+            $last_name = properCase(cleanInput($_POST['last_name'] ?? ''));
+            $first_name = properCase(cleanInput($_POST['first_name'] ?? ''));
+            $middle_name = properCase(cleanInput($_POST['middle_name'] ?? ''));
             $contact_num = cleanInput($_POST['contact_num'] ?? '');
-            $email = cleanInput($_POST['email'] ?? '');
+            $email = cleanInput($_POST['email'] ?? ''); // Email remains as entered
             $status = strtolower(cleanInput($_POST['status'] ?? ''));
             $status = ($status == 'active') ? 'Active' : 'Inactive'; // Normalize status
             $fee_type = cleanInput($_POST['fee_type'] ?? '');
@@ -141,11 +152,12 @@
     
             for ($row = 2; $row <= $highestRow; $row++) {
                 $member_id = cleanInput($sheet->getCell('A'.$row)->getValue());
-                $last_name = cleanInput($sheet->getCell('B'.$row)->getValue());
-                $first_name = cleanInput($sheet->getCell('C'.$row)->getValue());
-                $middle_name = cleanInput($sheet->getCell('D'.$row)->getValue());
+                // Apply proper case to imported names
+                $last_name = properCase(cleanInput($sheet->getCell('B'.$row)->getValue()));
+                $first_name = properCase(cleanInput($sheet->getCell('C'.$row)->getValue()));
+                $middle_name = properCase(cleanInput($sheet->getCell('D'.$row)->getValue()));
                 $contact_num = cleanInput($sheet->getCell('E'.$row)->getValue());
-                $email = cleanInput($sheet->getCell('F'.$row)->getValue());
+                $email = cleanInput($sheet->getCell('F'.$row)->getValue()); // Email remains as entered
                 $status = strtolower(cleanInput($sheet->getCell('G'.$row)->getValue()));
                 $status = ($status == 'active') ? 'Active' : 'Inactive'; // Normalize status
     
