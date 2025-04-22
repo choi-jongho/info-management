@@ -21,14 +21,28 @@
         'Other' => 0 // This allows for custom fee types and amounts
     ];
 
-    // Function to properly capitalize names (first letter uppercase, rest lowercase)
+    // Function to properly capitalize multi-word names
+    // Each word in the name will have its first letter capitalized
     function properCase($string) {
         // Trim the string and ensure it's not empty
         $string = trim($string);
         if (empty($string)) return '';
         
-        // Convert the first character to uppercase and the rest to lowercase
-        return ucfirst(strtolower($string));
+        // Convert the string to lowercase first
+        $string = strtolower($string);
+        
+        // Split the string by spaces to handle each word separately
+        $words = explode(' ', $string);
+        
+        // Capitalize the first letter of each word
+        foreach ($words as &$word) {
+            if (!empty($word)) {
+                $word = ucfirst($word);
+            }
+        }
+        
+        // Join the words back together with spaces
+        return implode(' ', $words);
     }
 
     // Handle form submission (Members + Fees)
