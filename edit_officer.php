@@ -254,7 +254,7 @@
                 create: true,
                 createOnBlur: true,
                 sortField: 'text',
-                placeholder: 'Select or enter member ID'
+                placeholder: 'Select or enter Student ID'
             });
 
             // Initialize selectize for role_id with the ability to create new options

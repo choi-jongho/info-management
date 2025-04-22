@@ -215,7 +215,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th>Officer ID</th>
-                                <th>Member ID</th>
+                                <th>Student ID</th>
                                 <th>Name</th>
                                 <th>Role</th>
                                 <th>Username</th>

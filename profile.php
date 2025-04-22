@@ -175,7 +175,7 @@
              
                     <div class="row mb-4">
                         <div class="col-md-4 mb-3">
-                            <label for="member_id" class="form-label">Member ID</label>
+                            <label for="member_id" class="form-label">Student ID</label>
                             <input type="text" class="form-control" id="member_id" value="<?php echo htmlspecialchars($member['member_id']); ?>" readonly disabled>
                         </div> 
                         <div class="col-md-4 mb-3">

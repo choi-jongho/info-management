@@ -176,7 +176,7 @@
                     <div class="profile-body">
                         <div class="row mb-3">
                             <div class="col-md-4">
-                                <p class="info-label">Member ID</p>
+                                <p class="info-label">Student ID</p>
                                 <p><?php echo htmlspecialchars($officer['member_id']); ?></p>
                             </div>
                             <div class="col-md-4">

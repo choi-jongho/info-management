@@ -217,7 +217,7 @@
                         exit();
                     } else {
                         $conn->rollback();
-                        $_SESSION['error_message'] = "Cannot restore: Member ID already exists.";
+                        $_SESSION['error_message'] = "Cannot restore: Student ID already exists.";
                     }
                 } catch (Exception $e) {
                     $conn->rollback();
