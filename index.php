@@ -246,7 +246,7 @@
                     <h2>Welcome to INTEL Membership Records</h2>
                     <p>View member statistics, manage records, and track balances all in one place.</p>
                 </div>
-                <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president'])): ?>
+                <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president', 'intel_secretary'])): ?>
                     <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                         <a href="add_member.php" class="btn btn-light action-btn">
                             <i class="fas fa-user-plus me-1"></i>Add Member
@@ -339,7 +339,7 @@
                                                     <i class="fas fa-eye"></i>
                                                 </a>
 
-                                                <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president'])): ?>
+                                                <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president', 'intel_secretary'])): ?>
                                                     <a href="edit_member.php?id=<?php echo $member['member_id']; ?>" class="btn btn-sm btn-warning text-white" title="Edit">
                                                         <i class="fas fa-edit"></i>
                                                     </a>

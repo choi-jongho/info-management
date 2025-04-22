@@ -62,7 +62,7 @@
                             <i class="fas fa-eye"></i>
                         </a>
 
-                        <?php if (isset($_SESSION['officer_role']) && in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president'])): ?>
+                        <?php if (isset($_SESSION['officer_role']) && in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president', 'intel_secretary'])): ?>
                             <a href="edit_member.php?id=<?php echo htmlspecialchars(urlencode($row['member_id'])); ?>" 
                             class="btn btn-warning text-white" title="Edit">
                                 <i class="fas fa-edit"></i>

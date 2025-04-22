@@ -62,6 +62,13 @@
           $stmt->close();
       }
   }
+
+  // Fetch available members and roles for dropdowns
+  $members_query = "SELECT member_id, CONCAT(member_id, ' - ', last_name, ', ', first_name) AS member_name FROM members ORDER BY last_name";
+  $members_result = $conn->query($members_query);
+
+  $roles_query = "SELECT role_id, role_name FROM role ORDER BY role_name";
+  $roles_result = $conn->query($roles_query);
 ?>
 
 <!DOCTYPE html>
@@ -75,6 +82,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Selectize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/css/selectize.bootstrap5.min.css">
     <link rel="icon" href="images/info-tech.svg">
     <!-- Custom Styles -->
     <style>
@@ -114,15 +123,21 @@
             color: red;
             margin-left: 4px;
         }
+        /* Custom styles for selectize */
+        .selectize-input {
+            padding: 0.375rem 0.75rem;
+            font-size: 1rem;
+            border-radius: 0.25rem;
+        }
     </style>
 </head>
 <body>
     <!-- Header -->
     <header class="bg-navy text-white py-3">
         <div class="container d-flex justify-content-between align-items-center">
-            <h1><i class="fas fa-user-tie me-2"></i>Add New Officer</h1>
-            <a href="members.php" class="btn btn-outline-light">
-                <i class="fas fa-arrow-left me-2"></i>Back to Members
+            <h1><i class="fas fa-user-tie me-2"></i> Add New Officer</h1>
+            <a href="officer_list.php" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i> Back to Officers List
             </a>
         </div>
     </header>
@@ -157,11 +172,25 @@
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="signup_member_id" class="form-label required-field">Student ID</label>
-                        <input type="text" class="form-control" id="signup_member_id" name="signup_member_id" value="<?php echo isset($_POST['signup_member_id']) ? htmlspecialchars($_POST['signup_member_id']) : ''; ?>" required>
+                        <select class="form-select" id="signup_member_id" name="signup_member_id" required>
+                            <option value="">Select Student</option>
+                            <?php while($member = $members_result->fetch_assoc()): ?>
+                                <option value="<?php echo $member['member_id']; ?>">
+                                    <?php echo htmlspecialchars($member['member_name']); ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
                     </div>
                     <div class="col-md-4 mb-3">
-                        <label for="signup_role_id" class="form-label required-field">Role ID</label>
-                        <input type="text" class="form-control" id="signup_role_id" name="signup_role_id" value="<?php echo isset($_POST['signup_role_id']) ? htmlspecialchars($_POST['signup_role_id']) : ''; ?>" required>
+                        <label for="signup_role_id" class="form-label required-field">Role</label>
+                        <select class="form-select" id="signup_role_id" name="signup_role_id" required>
+                            <option value="">Select Role</option>
+                            <?php while($role = $roles_result->fetch_assoc()): ?>
+                                <option value="<?php echo $role['role_id']; ?>">
+                                    <?php echo htmlspecialchars($role['role_name']); ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
                     </div>
                 </div>
                 
@@ -189,7 +218,7 @@
                             </span>
                         </div>
                     </div>                   
-                  </div>
+                </div>
 
                 <div class="d-flex justify-content-end mt-4">
                     <a href="members.php" class="btn btn-secondary me-2">
@@ -208,8 +237,12 @@
         <p class="mb-0">&copy; 2025 Information Technology Link | All Rights Reserved</p>
     </footer>
 
-    <!-- Bootstrap JS -->
+    <!-- jQuery first, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Selectize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/selectize.js/0.15.2/js/selectize.min.js"></script>
+    
     <script>
     function setupPasswordToggle(inputId, toggleId) {
         const passwordField = document.getElementById(inputId);
@@ -225,17 +258,36 @@
             }
         });
     }
+    
     document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(function() {
-                let alertBox = document.querySelector(".alert");
-                if (alertBox) {
-                    alertBox.style.transition = "opacity 0.5s";
-                    alertBox.style.opacity = "0";
-                    setTimeout(() => alertBox.style.display = "none", 500);
-                }
-            }, 2500); // 2.5 seconds delay
+        setTimeout(function() {
+            let alertBox = document.querySelector(".alert");
+            if (alertBox) {
+                alertBox.style.transition = "opacity 0.5s";
+                alertBox.style.opacity = "0";
+                setTimeout(() => alertBox.style.display = "none", 500);
+            }
+        }, 2500); // 2.5 seconds delay
+    });
+
+    $(document).ready(function() {
+        // Initialize selectize for signup_member_id with the ability to create new options
+        $('#signup_member_id').selectize({
+            create: true,
+            createOnBlur: true,
+            sortField: 'text',
+            placeholder: 'Select or enter student ID'
         });
 
+        // Initialize selectize for signup_role_id with the ability to create new options
+        $('#signup_role_id').selectize({
+            create: true,
+            createOnBlur: true,
+            sortField: 'text',
+            placeholder: 'Select or enter role ID'
+        });
+    });
+    
     setupPasswordToggle("signup_password", "togglePassword");
     setupPasswordToggle("confirm_password", "toggleConfirmPassword");
 </script>

@@ -120,7 +120,7 @@
                                         <td><?php echo htmlspecialchars($payment['semester']); ?></td>
                                         <td><?php echo htmlspecialchars($payment['school_year']); ?></td>
                                         <td><?php echo htmlspecialchars($payment['payment_date']); ?></td>
-                                            <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president'])): ?>
+                                            <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president', 'intel_secretary'])): ?>
                                                 <td class="text-end">
                                                     <a href="view_receipt.php?payment_id=<?php echo htmlspecialchars(urlencode($payment['payment_id'])); ?>" class="btn btn-sm btn-primary">
                                                         <i class="fas fa-file-invoice me-1"></i>View Receipt
