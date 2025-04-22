@@ -189,11 +189,13 @@
         <?php endif; ?>
 
         <div class="row align-items-center mb-4">
+            <?php if ($is_officer): ?>
             <div class="col-md-6">
                 <a href="new_officer.php" class="btn btn-navy">
                     <i class="fas fa-user-plus me-2"></i>Add New Officer
                 </a>
             </div>
+            <?php endif; ?>
             
             <div class="col-md-6 mt-md-0 mt-3">
                 <form class="d-flex" method="GET" action="">
