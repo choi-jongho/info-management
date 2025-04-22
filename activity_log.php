@@ -342,11 +342,43 @@
                                 <td><?php echo htmlspecialchars($log['date']); ?></td>
                                 <td>
                                     <?php if ($log['action'] == 'Member Deletion' && !empty($log['member_data'])): ?>
-                                        <form method="POST" action="" onsubmit="return confirm('Are you sure you want to restore this member?');">
+                                        <?php 
+                                            // Parse the member data to get the name (assuming it's stored in JSON format)
+                                            $memberData = json_decode($log['member_data'], true);
+                                            $memberName = !empty($memberData['first_name']) && !empty($memberData['last_name']) ? 
+                                                        $memberData['first_name'] . ' ' . $memberData['last_name'] : 
+                                                        'Unknown Member';
+                                            // Generate a safe modal ID
+                                            $modal_id = 'restore_' . preg_replace('/[^a-zA-Z0-9]/', '_', $log['log_id']);
+                                        ?>
+                                        <form method="POST" action="">
                                             <input type="hidden" name="log_id" value="<?php echo $log['log_id']; ?>">
-                                            <button type="submit" name="restore_member" class="btn btn-success btn-restore">
+                                            <!-- Using Bootstrap's data attributes to trigger a modal without JavaScript -->
+                                            <button type="button" class="btn btn-success btn-restore" data-bs-toggle="modal" data-bs-target="#<?php echo $modal_id; ?>">
                                                 <i class="fas fa-user-plus"></i> Restore
                                             </button>
+                                            
+                                            <!-- Individual modal for each row -->
+                                            <div class="modal fade" id="<?php echo $modal_id; ?>" tabindex="-1" aria-labelledby="restoreModalLabel<?php echo $log['log_id']; ?>" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-success text-white">
+                                                            <h5 class="modal-title" id="restoreModalLabel<?php echo $log['log_id']; ?>">Restore Member</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>Are you sure you want to restore member <strong><?php echo htmlspecialchars($memberName); ?></strong>?</p>
+                                                            <p>This will reinstate their account with all previous data and settings.</p>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <button type="submit" name="restore_member" class="btn btn-success">
+                                                                <i class="fas fa-user-plus"></i> Confirm Restore
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </form>
                                     <?php endif; ?>
                                 </td>
