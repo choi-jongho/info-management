@@ -87,7 +87,6 @@
                             LIMIT ?, ?");
     if (!empty($search_query)) {
         $search_param = "%" . $search_query . "%";
-        // Fixed: Changed from ssssssii to sssssssii for correct parameter binding
         $stmt->bind_param("sssssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $offset, $payments_per_page);
     } else {
         $stmt->bind_param("ii", $offset, $payments_per_page);
@@ -101,16 +100,11 @@
                                         JOIN members m ON p.member_id = m.member_id 
                                         $search_sql");
     if (!empty($search_query)) {
-        // Fixed: Changed from ssssss to sssssss for correct parameter binding
         $total_payments_stmt->bind_param("sssssss", $search_param, $search_param, $search_param, $search_param, $search_param, $search_param, $search_param);
     }
     $total_payments_stmt->execute();
     $total_payments = $total_payments_stmt->get_result()->fetch_assoc()['count'];
     $total_pages = ceil($total_payments / $payments_per_page);
-
-    // Calculate displayed range
-    $display_start = $offset + 1;
-    $display_end = min($offset + $payments_per_page, $total_payments);
 ?>
 
 <!DOCTYPE html>
@@ -251,33 +245,33 @@
                         </tbody>
                     </table>    
                 </div>
-                <!-- Pagination -->
-                <?php if ($total_pages > 1): ?>
-                    <div class="d-flex justify-content-between align-items-center mt-4" id="paginationContainer" <?php echo ($total_pages <= 1) ? 'style="display: none;"' : ''; ?>>
+                <!-- Updated Pagination (matching members.php style) -->
+                <?php if($total_pages > 1): ?>
+                    <div class="d-flex justify-content-between align-items-center mt-4">
                         <div>
-                            <p class="text-muted" id="paginationInfo">
-                                Showing <?php echo $display_start; ?> to <?php echo $display_end; ?> of <?php echo $total_payments; ?> payments
-                            </p>
+                            <p class="text-muted">Showing <?php echo min($offset + 1, $total_payments); ?> to <?php echo min($offset + $payments_per_page, $total_payments); ?> of <?php echo $total_payments; ?> payments</p>
                         </div>
                         <nav aria-label="Page navigation">
                             <ul class="pagination">
                                 <!-- Previous Button -->
                                 <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
-                                    <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search_query); ?>" aria-label="Previous">
+                                    <a class="page-link" href="?page=<?php echo $page - 1; ?><?php echo !empty($search_query) ? '&search=' . urlencode($search_query) : ''; ?>" aria-label="Previous">
                                         <span aria-hidden="true">&laquo;</span>
                                     </a>
                                 </li>
-
+                                
                                 <!-- Page Numbers -->
-                                <?php for ($i = max(1, $page - 2); $i <= min($page + 2, $total_pages); $i++): ?>
+                                <?php for($i = max(1, $page - 2); $i <= min($page + 2, $total_pages); $i++): ?>
                                     <li class="page-item <?php echo ($page == $i) ? 'active' : ''; ?>">
-                                        <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search_query); ?>"><?php echo $i; ?></a>
+                                        <a class="page-link" href="?page=<?php echo $i; ?><?php echo !empty($search_query) ? '&search=' . urlencode($search_query) : ''; ?>">
+                                            <?php echo $i; ?>
+                                        </a>
                                     </li>
                                 <?php endfor; ?>
-
+                                
                                 <!-- Next Button -->
                                 <li class="page-item <?php echo ($page >= $total_pages) ? 'disabled' : ''; ?>">
-                                    <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search_query); ?>" aria-label="Next">
+                                    <a class="page-link" href="?page=<?php echo $page + 1; ?><?php echo !empty($search_query) ? '&search=' . urlencode($search_query) : ''; ?>" aria-label="Next">
                                         <span aria-hidden="true">&raquo;</span>
                                     </a>
                                 </li>
@@ -297,92 +291,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function(){
-            // Function to update pagination display
-            function updatePagination(paginationData) {
-                if (!paginationData) return;
-                
-                // Update the "Showing X to Y of Z payments" text
-                $('.text-muted:first').text(
-                    `Showing ${paginationData.display_start} to ${paginationData.display_end} of ${paginationData.total_payments} payments`
-                );
-                
-                // Update pagination links
-                const paginationContainer = $('.pagination');
-                paginationContainer.empty();
-                
-                // Previous button
-                paginationContainer.append(`
-                    <li class="page-item ${paginationData.current_page <= 1 ? 'disabled' : ''}">
-                        <a class="page-link" href="?page=${paginationData.current_page - 1}&search=${encodeURIComponent($('#searchBar').val())}" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
-                        </a>
-                    </li>
-                `);
-                
-                // Page numbers
-                for (let i = Math.max(1, paginationData.current_page - 2); i <= Math.min(paginationData.current_page + 2, paginationData.total_pages); i++) {
-                    paginationContainer.append(`
-                        <li class="page-item ${paginationData.current_page == i ? 'active' : ''}">
-                            <a class="page-link" href="?page=${i}&search=${encodeURIComponent($('#searchBar').val())}">${i}</a>
-                        </li>
-                    `);
-                }
-                
-                // Next button
-                paginationContainer.append(`
-                    <li class="page-item ${paginationData.current_page >= paginationData.total_pages ? 'disabled' : ''}">
-                        <a class="page-link" href="?page=${paginationData.current_page + 1}&search=${encodeURIComponent($('#searchBar').val())}" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
-                        </a>
-                    </li>
-                `);
-            }
-            
-            // Function to fetch payments
-            function fetchPayments(query, page = 1) {
-                $.ajax({
-                    url: "fetch_payments.php",
-                    method: "GET",
-                    data: { 
-                        search: query,
-                        page: page,
-                        update_pagination: 1
-                    },
-                    beforeSend: function() {
-                        $("#paymentTableBody").html('<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>');
-                    },
-                    success: function(response) {
-                        try {
-                            const parts = response.split("||PAGINATION||");
-                            const tableContent = parts[0];
-                            const paginationData = parts[1] ? JSON.parse(parts[1]) : null;
-                            
-                            $("#paymentTableBody").html(tableContent);
-                            
-                            // Update pagination if data is available
-                            if (paginationData) {
-                                updatePagination(paginationData);
-                                
-                                // Show/hide pagination section based on total pages
-                                if (paginationData.total_pages > 1) {
-                                    $('#paginationContainer').show();
-                                } else {
-                                    $('#paginationContainer').hide();
-                                }
-                            }
-                        } catch (e) {
-                            console.error("Error parsing response:", e);
-                            $("#paymentTableBody").html('<tr><td colspan="6" class="text-center text-danger">Error processing data. Please try again.</td></tr>');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error("Error fetching payments:", error);
-                        $("#paymentTableBody").html('<tr><td colspan="6" class="text-center text-danger">Error loading data. Please try again.</td></tr>');
-                    }
-                });
-            }
-            
-            // Search on keyup without debouncing
             $("#searchBar").on("keyup", function() {
                 var query = $(this).val();
                 $.ajax({
@@ -390,28 +298,26 @@
                     method: "GET",
                     data: { search: query },
                     success: function(response) {
-                        $("#paymentTableBody").html(response); // Update table dynamically
+                        $("#paymentTableBody").html(response);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error("AJAX Error: " + error);
+                        // Optionally show an error message to the user
                     }
                 });
             });
-            
-            // Handle direct pagination clicks
-            $(document).on('click', '.pagination .page-link', function(e) {
-                e.preventDefault();
-                const href = $(this).attr('href');
-                const urlParams = new URLSearchParams(href.split('?')[1]);
-                const page = urlParams.get('page');
-                const search = urlParams.get('search') || '';
+        });
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                let alertBoxes = document.querySelectorAll(".alert"); // Select all alerts
                 
-                fetchPayments(search, page);
-            });
-            
-            // Handle form submission (prevent default)
-            $('form').on('submit', function(e) {
-                e.preventDefault();
-                const query = $('#searchBar').val();
-                fetchPayments(query, 1);
-            });
+                alertBoxes.forEach(alertBox => { // Loop through each alert
+                    alertBox.style.transition = "opacity 0.5s";
+                    alertBox.style.opacity = "0";
+                    setTimeout(() => alertBox.style.display = "none", 500);
+                });
+
+            }, 2500); // 2.5 seconds delay
         });
     </script>
 </body>
