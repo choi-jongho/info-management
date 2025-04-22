@@ -187,7 +187,7 @@
                 <i class="fas fa-times me-1"></i> Cancel
             </a>
             <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president'])): ?>
-                <a href="add_payments.php" class="btn btn-success me-2">
+                <a href="add_payments.php?member_id=<?php echo htmlspecialchars($member['member_id']); ?>" class="btn btn-success me-2">
                     <i class="fas fa-money-bill-wave me-1"></i> Add Payment
                 </a>
             <?php endif; ?>

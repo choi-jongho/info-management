@@ -417,7 +417,7 @@
                         <i class="fas fa-user-plus me-2"></i>Add New Member
                     </a>
                     <a href="add_fees.php" class="btn btn-navy">
-                        <i class="fas fa-dollar-sign me-2"></i>Add Fees
+                        <i class="fas fa-peso-sign me-2"></i>Add Fees
                     </a>
                 </div>
                 

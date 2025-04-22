@@ -5,10 +5,16 @@
     session_start();
     $officer_id = $_SESSION['officer_id'] ?? null;
 
+
     // Ensure officer is logged in
     if (!$officer_id) {
         header("Location: login.php");
         exit();
+    }
+
+    $pre_filled_member_id = '';
+    if (isset($_GET['member_id']) && !empty($_GET['member_id'])) {
+        $pre_filled_member_id = sanitize_input($_GET['member_id']);
     }
 
     $errors = [];
@@ -248,7 +254,7 @@
                 <form id="memberLookupForm" class="row g-3 align-items-end">
                     <div class="col-md-6">
                         <label for="lookup_member_id" class="form-label">Student ID</label>
-                        <input type="text" class="form-control" id="lookup_member_id" placeholder="Enter Student ID">
+                        <input type="text" class="form-control" id="lookup_member_id" value="<?php echo htmlspecialchars($pre_filled_member_id); ?>" placeholder="Enter Student ID">
                     </div>
                     <div class="col-md-6">
                         <button type="button" id="lookupMemberBtn" class="btn btn-navy">
@@ -301,7 +307,7 @@
                     <div class="row mb-3">
                         <div class="col-md-4">
                             <label for="member_id" class="form-label">Student ID</label>
-                            <input type="text" class="form-control" id="member_id" name="member_id" required>
+                            <input type="text" class="form-control" id="member_id" name="member_id" value="<?php echo htmlspecialchars($pre_filled_member_id); ?>" required>
                         </div>
                     </div>
 
