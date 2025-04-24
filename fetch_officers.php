@@ -58,7 +58,7 @@
                             <i class='fas fa-eye'></i>
                         </a>";
             
-            // Only show edit and delete buttons for presidents
+            // Only show edit and delete buttons for authorized officers
             if ($is_officer) {
                 echo "<a href='edit_officer.php?id=" . htmlspecialchars($row['officer_id']) . "' 
                         class='btn btn-warning text-white' title='Edit'>
@@ -73,13 +73,14 @@
             
             echo "</div>";
             
-            // Only add the modal for presidents
-            if ($is_president) {
+            // Only add the modal for authorized officers
+            if ($is_officer) {
                 echo "<div class='modal fade' id='{$modal_id}' tabindex='-1' aria-labelledby='deleteModalLabel' aria-hidden='true'>
                     <div class='modal-dialog'>
                         <div class='modal-content'>
                             <div class='modal-header bg-danger text-white'>
                                 <h5 class='modal-title' id='deleteModalLabel'>Confirm Deletion</h5>
+                                <button type='button' class='btn-close' data-bs-dismiss='modal' aria-label='Close'></button>
                             </div>
                             <div class='modal-body'>
                                 <p>Are you sure you want to delete officer <strong>" . htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) . "</strong>?</p>
