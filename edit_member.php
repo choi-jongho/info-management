@@ -242,13 +242,13 @@
                         </div>
 
                         <div class="col-md-3 mb-3">
-                            <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                            <label for="last_name" class="form-label">Last Name</label>
                             <input type="text" class="form-control" id="last_name" name="last_name" 
                                 value="<?php echo htmlspecialchars($member['last_name']); ?>" required>
                         </div>
 
                         <div class="col-md-3 mb-3">
-                            <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                            <label for="first_name" class="form-label">First Name</span></label>
                             <input type="text" class="form-control" id="first_name" name="first_name" 
                                 value="<?php echo htmlspecialchars($member['first_name']); ?>" required>
                         </div>
@@ -262,19 +262,19 @@
 
                     <div class="row mb-4">
                         <div class="col-md-4 mb-3">
-                            <label for="contact_num" class="form-label">Contact Number <span class="text-danger">*</span></label>
+                            <label for="contact_num" class="form-label">Contact Number</label>
                             <input type="tel" class="form-control" id="contact_num" name="contact_num" 
                                 value="<?php echo htmlspecialchars($member['contact_num']); ?>" required>
                         </div>
 
                         <div class="col-md-4 mb-3">
-                            <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                            <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" name="email" 
                                 value="<?php echo htmlspecialchars($member['email']); ?>" required>
                         </div>
 
                         <div class="col-md-4 mb-3">
-                            <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                            <label for="status" class="form-label">Status</label>
                             <select class="form-select" id="status" name="status" required>
                                 <option value="Active" <?php echo $member['status'] === 'Active' ? 'selected' : ''; ?>>Active</option>
                                 <option value="Inactive" <?php echo $member['status'] === 'Inactive' ? 'selected' : ''; ?>>Inactive</option>
