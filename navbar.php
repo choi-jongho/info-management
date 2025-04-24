@@ -54,7 +54,7 @@
                             </a>
                             <ul class="dropdown-menu" aria-labelledby="membersDropdown">
                                 <li><a class="dropdown-item" href="members.php"><i class="fas fa-list me-2"></i> All Members</a></li>
-                                <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president', 'intel_secretary'])): ?>
+                                <?php if (in_array($_SESSION['officer_role'], ['intel_president', 'intel_secretary'])): ?>
                                     <li><a class="dropdown-item" href="add_member.php"><i class="fas fa-user-plus me-2"></i> Add New Member</a></li>
                                 <?php endif; ?>
                             </ul>
@@ -92,7 +92,7 @@
                                     <i class="fas fa-user-tie me-2"></i> Officer List
                                 </a>
                             </li>
-			                <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president'])): ?>
+			                <?php if (in_array($_SESSION['officer_role'], ['intel_president', 'intel_secretary'])): ?>
                                 <li>
                                     <a class="dropdown-item" href="activity_log.php">
                                         <i class="fas fa-history me-2"></i> Activity Log

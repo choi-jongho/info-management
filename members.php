@@ -413,9 +413,11 @@
             <?php else: ?>
                 <!-- If President or Treasurer, keep buttons separate -->
                 <div class="col-md-6 d-flex gap-2">
+                    <?php if (in_array($_SESSION['officer_role'], ['intel_president', 'intel_secretary'])): ?>
                     <a href="add_member.php" class="btn btn-navy">
                         <i class="fas fa-user-plus me-2"></i>Add New Member
                     </a>
+                    <?php endif; ?>
                     <a href="add_fees.php" class="btn btn-navy">
                         <i class="fas fa-peso-sign me-2"></i>Add Fees
                     </a>
@@ -526,7 +528,7 @@
                                             <i class="fas fa-eye"></i>
                                         </a>
 
-                                        <?php if (in_array($_SESSION['officer_role'], ['intel_treasurer', 'intel_president', 'intel_secretary'])): ?>
+                                        <?php if (in_array($_SESSION['officer_role'], ['intel_president', 'intel_secretary'])): ?>
                                             <a href="edit_member.php?id=<?php echo htmlspecialchars(urlencode($row['member_id'])); ?>" 
                                             class="btn btn-warning text-white" title="Edit">
                                                 <i class="fas fa-edit"></i>
