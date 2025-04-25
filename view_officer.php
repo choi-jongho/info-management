@@ -27,7 +27,7 @@
 
     // Fetch officer details with member and role information
     $stmt = $conn->prepare("
-        SELECT o.officer_id, o.member_id, o.role_id, o.username, 
+        SELECT o.officer_id, o.member_id, o.role_id, 
                m.first_name, m.last_name, m.email, m.contact_num,
                r.role_name
         FROM officers o
@@ -175,15 +175,11 @@
                     </div>
                     <div class="profile-body">
                         <div class="row mb-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <p class="info-label">Student ID</p>
                                 <p><?php echo htmlspecialchars($officer['member_id']); ?></p>
                             </div>
-                            <div class="col-md-4">
-                                <p class="info-label">Username</p>
-                                <p><?php echo htmlspecialchars($officer['username']); ?></p>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <p class="info-label">Role</p>
                                 <p><?php echo htmlspecialchars($officer['role_name']); ?></p>
                             </div>

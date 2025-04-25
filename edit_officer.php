@@ -66,7 +66,15 @@
         }
         
         if ($stmt->execute()) {
-            $success_message = "Officer updated successfully!";
+            // Log the update activity
+            $log_message = "Updated officer $officer_id: Member ID=$member_id, Role=$role_id, Username=$username";
+            if (!empty($_POST['password'])) {
+                $log_message .= " (password changed)";
+            }
+            log_activity('Update Officer', $log_message, $_SESSION['officer_id']);
+            $_SESSION['success_message'] = "Officer updated successfully.";
+            header('Location: officer_list.php');
+            exit();
         } else {
             $error_message = "Error updating officer: " . $conn->error;
         }
@@ -251,7 +259,7 @@
         $(document).ready(function() {
             // Initialize selectize for member_id with the ability to create new options
             $('#member_id').selectize({
-                create: true,
+                create: false,
                 createOnBlur: true,
                 sortField: 'text',
                 placeholder: 'Select or enter Student ID'
@@ -259,7 +267,7 @@
 
             // Initialize selectize for role_id with the ability to create new options
             $('#role_id').selectize({
-                create: true,
+                create: false,
                 createOnBlur: true,
                 sortField: 'text',
                 placeholder: 'Select or enter role ID'

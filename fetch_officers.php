@@ -24,19 +24,19 @@
     $is_officer = in_array($current_role, ['intel_president', 'intel_secretary']);
 
     // Search query
-    $query = "SELECT o.officer_id, o.member_id, o.role_id, o.username, 
+    $query = "SELECT o.officer_id, o.member_id, o.role_id,
                     m.first_name, m.last_name,
                     r.role_name 
             FROM officers o 
             JOIN members m ON o.member_id = m.member_id 
             JOIN role r ON o.role_id = r.role_id
-            WHERE m.first_name LIKE ? OR m.last_name LIKE ? OR o.username LIKE ? 
+            WHERE m.first_name LIKE ? OR m.last_name LIKE ?
                     OR o.member_id LIKE ? OR o.officer_id LIKE ?
             ORDER BY o.role_id";
 
     $stmt = $conn->prepare($query);
     $search_param = "%$search%";
-    $stmt->bind_param("sssss", $search_param, $search_param, $search_param, $search_param, $search_param);
+    $stmt->bind_param("ssss", $search_param, $search_param, $search_param, $search_param);
     $stmt->execute();
     $result = $stmt->get_result();
 
@@ -50,7 +50,6 @@
                 <td>" . htmlspecialchars($row['member_id']) . "</td>
                 <td>" . htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) . "</td>
                 <td>" . htmlspecialchars($row['role_name']) . "</td>
-                <td>" . htmlspecialchars($row['username']) . "</td>
                 <td>
                     <div class='action-buttons d-flex justify-content-center'>
                         <a href='view_officer.php?id=" . htmlspecialchars($row['officer_id']) . "' 
@@ -99,7 +98,7 @@
             </tr>";
         }
     } else {
-        echo "<tr><td colspan='6' class='text-center'>No officers found matching '{$search}'</td></tr>";
+        echo "<tr><td colspan='5' class='text-center'>No officers found matching '{$search}'</td></tr>";
     }
 
     $stmt->close();

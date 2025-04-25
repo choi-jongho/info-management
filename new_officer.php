@@ -52,8 +52,9 @@
 
           if ($stmt->execute()) {
               // Log activity only after the officer is successfully registered
-              log_activity('Sign Up', "New officer registered: $signup_username", $stmt->insert_id);
-              header("Location: new_officer.php?success=1"); // Redirect to new_officer.php with success parameter
+              log_activity('Sign Up', "New officer registered: $signup_username ($signup_officer_id)", $_SESSION['officer_id']);
+              $_SESSION['success_message'] = "Officer has been added successfully.";
+              header("Location: officer_list.php");
               exit();
           } else {
               $signup_errors[] = "Failed to register. Please try again.";
@@ -63,8 +64,12 @@
       }
   }
 
-  // Fetch available members and roles for dropdowns
-  $members_query = "SELECT member_id, CONCAT(member_id, ' - ', last_name, ', ', first_name) AS member_name FROM members ORDER BY last_name";
+  // Modified query: Fetch only members who are not already officers
+  $members_query = "SELECT m.member_id, CONCAT(m.member_id, ' - ', m.last_name, ', ', m.first_name) AS member_name 
+                    FROM members m 
+                    LEFT JOIN officers o ON m.member_id = o.member_id 
+                    WHERE o.member_id IS NULL 
+                    ORDER BY m.last_name";
   $members_result = $conn->query($members_query);
 
   $roles_query = "SELECT role_id, role_name FROM role ORDER BY role_name";
@@ -144,13 +149,6 @@
 
     <!-- Main Content -->
     <main class="container my-5">
-        <!-- Success Message Display -->
-        <?php if (isset($_GET['success']) && $_GET['success'] == 1): ?>
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <strong>Success!</strong> Officer has been added successfully.
-            </div>
-        <?php endif; ?>
-
         <!-- Error Messages Display -->
         <?php if(isset($signup_errors) && !empty($signup_errors)): ?>
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -180,6 +178,9 @@
                                 </option>
                             <?php endwhile; ?>
                         </select>
+                        <?php if ($members_result->num_rows == 0): ?>
+                            <small class="text-muted">No available students found. All students are already assigned as officers.</small>
+                        <?php endif; ?>
                     </div>
                     <div class="col-md-4 mb-3">
                         <label for="signup_role_id" class="form-label required-field">Role</label>
@@ -271,17 +272,17 @@
     });
 
     $(document).ready(function() {
-        // Initialize selectize for signup_member_id with the ability to create new options
+        // Initialize selectize for signup_member_id without the ability to create new options
+        // since we only want to select from available non-officer students
         $('#signup_member_id').selectize({
-            create: true,
-            createOnBlur: true,
+            create: false,
             sortField: 'text',
-            placeholder: 'Select or enter student ID'
+            placeholder: 'Select student ID'
         });
 
-        // Initialize selectize for signup_role_id with the ability to create new options
+        // Initialize selectize for signup_role_id
         $('#signup_role_id').selectize({
-            create: true,
+            create: false,
             createOnBlur: true,
             sortField: 'text',
             placeholder: 'Select or enter role ID'

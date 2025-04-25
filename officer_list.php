@@ -50,7 +50,10 @@
         $stmt->bind_param("s", $officer_id);
         
         if ($stmt->execute()) {
-            $success_message = "Officer deleted successfully!";
+            // Fetch officer details before deletion for the log
+            $officer_details = "Officer ID: $officer_id";
+            log_activity('Delete Officer', "Officer deleted: $officer_details", $_SESSION['officer_id']);
+            $_SESSION['success_message'] = "Officer deleted successfully.";
         } else {
             $error_message = "Error deleting officer: " . $conn->error;
         }
@@ -58,7 +61,7 @@
     }
 
     // Fetch all officers from the database with member names and role names
-    $query = "SELECT o.officer_id, o.member_id, o.role_id, o.username, 
+    $query = "SELECT o.officer_id, o.member_id, o.role_id, 
                      m.first_name, m.last_name,
                      r.role_name 
               FROM officers o 
@@ -218,7 +221,6 @@
                                 <th>Student ID</th>
                                 <th>Name</th>
                                 <th>Role</th>
-                                <th>Username</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
@@ -233,7 +235,6 @@
                                     <td><?php echo htmlspecialchars($row['member_id']); ?></td>
                                     <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['role_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($row['username']); ?></td>
                                     <td>
                                         <div class="action-buttons d-flex justify-content-center">
                                             <a href="view_officer.php?id=<?php echo htmlspecialchars($row['officer_id']); ?>" 
