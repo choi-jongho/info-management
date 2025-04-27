@@ -186,7 +186,7 @@
 
                 <form method="POST" action="" class="row g-3">
 
-                    <div class="col-md-3">
+                    <div class="col-md-3 mb-3">
                         <label for="fee_type" class="form-label required-field">Fee Type</label>
                         <select class="form-select" id="fee_type" name="fee_type" required>
                             <?php foreach ($fee_types as $type => $amount): ?>
@@ -197,7 +197,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-3 mb-3">
                         <label for="fee_amount" class="form-label required-field">Fee Amount</label>
                         <div class="input-group">
                             <span class="input-group-text">₱</span>
@@ -205,7 +205,7 @@
                         </div>
                     </div>
                     
-                    <div class="col-md-3">
+                    <div class="col-md-3 mb-3">
                         <label for="semester" class="form-label required-field">Semester</label>
                         <select class="form-select" id="semester" name="semester" required>
                             <option value="1st Semester">1st Semester</option>

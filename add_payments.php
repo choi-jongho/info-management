@@ -313,26 +313,26 @@
 
                     <div id="paymentFields">
                         <div class="payment-entry row mb-3">
-                            <div class="col-md-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label">Fee Type</label>
                                 <input type="text" class="form-control" name="fee_type[]" placeholder="Membership Fee" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label">Payment Amount (₱)</label>
                                 <input type="number" class="form-control" name="amount[]" min="0" step="0.01" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3 mb-3">
                                 <label class="form-label">Semester</label>
                                 <select class="form-select" name="semester[]" required>
                                     <option value="1st Semester">1st Semester</option>
                                     <option value="2nd Semester">2nd Semester</option>
                                 </select>
                             </div>
-                            <div class="col-md-2">
+                            <div class="col-md-2 mb-3">
                                 <label class="form-label">School Year</label>
                                 <input type="text" class="form-control" name="school_year[]" required>
                             </div>
-                            <div class="col-md-1 d-flex align-items-end">
+                            <div class="col-md-1 mb-3 d-flex align-items-end">
                                 <button type="button" class="btn btn-danger remove-payment">
                                     <i class="fas fa-trash"></i>
                                 </button>
@@ -360,15 +360,15 @@
             let newEntry = document.createElement("div");
             newEntry.classList.add("payment-entry", "row", "mb-3");
             newEntry.innerHTML = `
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <label class="form-label">Fee Type</label>
                     <input type="text" class="form-control" name="fee_type[]" placeholder="Membership Fee" required>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <label class="form-label">Payment Amount (₱)</label>
                     <input type="number" class="form-control" name="amount[]" min="0" step="0.01" required>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-3 mb-3">
                     <label class="form-label">Semester</label>
                     <select class="form-select" name="semester[]" required>
                         <option value="1st Semester">1st Semester</option>

@@ -44,14 +44,14 @@
 
     // Handle delete operation - only allow for president
     if ($is_officer && isset($_GET['action']) && $_GET['action'] == 'delete' && isset($_GET['id'])) {
-        $officer_id = $_GET['id'];
+        $delete_id = $_GET['id'];
         $delete_query = "DELETE FROM officers WHERE officer_id = ?";
         $stmt = $conn->prepare($delete_query);
-        $stmt->bind_param("s", $officer_id);
+        $stmt->bind_param("s", $delete_id);
         
         if ($stmt->execute()) {
             // Fetch officer details before deletion for the log
-            $officer_details = "Officer ID: $officer_id";
+            $officer_details = "Officer ID: $delete_id";
             log_activity('Delete Officer', "Officer deleted: $officer_details", $_SESSION['officer_id']);
             $_SESSION['success_message'] = "Officer deleted successfully.";
         } else {
@@ -60,14 +60,27 @@
         $stmt->close();
     }
 
-    // Fetch all officers from the database with member names and role names
-    $query = "SELECT o.member_id, o.role_id, 
+    // Fetch all officers from the database with member names and role names in hierarchical order
+    $query = "SELECT o.officer_id, o.member_id, o.role_id, 
                      m.first_name, m.last_name,
                      r.role_name 
               FROM officers o 
               JOIN members m ON o.member_id = m.member_id 
               JOIN role r ON o.role_id = r.role_id 
-              ORDER BY o.role_id";
+              ORDER BY CASE r.role_name
+                        WHEN 'President' THEN 1
+                        WHEN 'Vice President' THEN 2
+                        WHEN 'Secretary' THEN 3
+                        WHEN 'Treasurer' THEN 4
+                        WHEN 'PIO' THEN 5
+                        WHEN 'Auditor' THEN 6
+                        WHEN 'BSIT SSG Representative' THEN 7
+                        WHEN '1st Year Representative' THEN 8
+                        WHEN '2nd Year Representative' THEN 9
+                        WHEN '3rd Year Representative' THEN 10
+                        WHEN '4th Year Representative' THEN 11
+                        ELSE 12
+                       END";
     $result = $conn->query($query);
 ?>
 

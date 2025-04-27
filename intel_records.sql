@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 24, 2025 at 06:26 PM
+-- Generation Time: Apr 27, 2025 at 06:02 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -883,7 +883,23 @@ INSERT INTO `activity_logs` (`log_id`, `officer_id`, `action`, `description`, `d
 (1010, 'intel_pres', 'Member Deletion', 'Member Andreia Beros (ID: 2025-77643) (Deleted by officer: intel_pres)', '2025-04-24 16:09:16'),
 (1011, 'intel_pres', 'Member Restoration', 'Member Andreia Beros (ID: 2025-77643) was restored.', '2025-04-24 16:20:15'),
 (1012, 'intel_pres', 'Member Deletion', 'Member Andreia Beros (ID: 2025-77643) (Deleted by officer: intel_pres)', '2025-04-24 16:20:24'),
-(1013, 'intel_pres', 'Member Restoration', 'Member Andreia Beros (ID: 2025-77643) was restored.', '2025-04-24 16:20:36');
+(1013, 'intel_pres', 'Member Restoration', 'Member Andreia Beros (ID: 2025-77643) was restored.', '2025-04-24 16:20:36'),
+(1014, 'intel_pres', 'Login', 'User logged in successfully', '2025-04-25 05:32:32'),
+(1015, 'intel_pres', 'Delete Officer', 'Officer deleted: Officer ID: intel_1styr_representative', '2025-04-25 05:45:54'),
+(1016, 'intel_pres', 'Delete Officer', 'Officer deleted: Officer ID: intel_1styr_representative', '2025-04-25 05:46:18'),
+(1017, 'intel_pres', 'Delete Officer', 'Officer deleted: Officer ID: intel_1styr_representative', '2025-04-25 05:48:43'),
+(1018, 'intel_pres', 'Delete Officer', 'Officer deleted: Officer ID: intel_1styr_representative', '2025-04-25 05:49:28'),
+(1019, 'intel_pres', 'Update Officer', 'Updated officer intel_pres: Member ID=2023-04321, Role=intel_president, Username=intel_pres', '2025-04-25 05:49:39'),
+(1020, 'intel_pres', 'Delete Officer', 'Officer deleted: Officer ID: intel_1styr', '2025-04-25 05:52:05'),
+(1021, 'intel_pres', 'Sign Up', 'New officer registered: intel_rep (intel_1styr_representative)', '2025-04-25 05:54:58'),
+(1022, 'intel_pres', 'Delete Officer', 'Officer deleted: Officer ID: intel_1styr_representative', '2025-04-25 05:55:40'),
+(1023, 'intel_vpres', 'Login', 'User logged in successfully', '2025-04-25 05:56:32'),
+(1024, 'intel_pres', 'Login', 'User logged in successfully', '2025-04-25 06:14:40'),
+(1025, 'intel_pres', 'Login', 'User logged in successfully', '2025-04-27 15:31:47'),
+(1026, 'intel_pres', 'Import Member', 'Imported member: Marilyn Asebto (ID: 2023-55472)', '2025-04-27 15:43:07'),
+(1027, 'intel_pres', 'Status Update', 'Member Marilyn Asebto (ID: 2023-55472) marked as active due to having less than 3 unpaid fees', '2025-04-27 15:43:07'),
+(1028, 'intel_pres', 'Batch Status Update', 'Updated 1 members to active status due to having less than 3 unpaid fees', '2025-04-27 15:43:07'),
+(1029, 'intel_pres', 'Sign Up', 'New officer registered: ssg_rep (intel_ssg)', '2025-04-27 16:01:07');
 
 -- --------------------------------------------------------
 
@@ -941,7 +957,8 @@ INSERT INTO `fees` (`member_id`, `fee_amount`, `fee_type`, `semester`, `school_y
 ('2025-65423', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid'),
 ('2025-77643', 100, 'INTEL FEE', '1st semester', '2025-2026', 'Unpaid'),
 ('2025-77643', 100, 'INTEL FEE', '1st Semester', '2024-2025', 'Unpaid'),
-('2025-77643', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid');
+('2025-77643', 100, 'INTEL FEE', '1st Semester', '2023-2024', 'Unpaid'),
+('2023-55472', 100, 'INTEL FEE', '1st semester', '2025-2026', 'Unpaid');
 
 -- --------------------------------------------------------
 
@@ -969,6 +986,7 @@ INSERT INTO `members` (`member_id`, `last_name`, `first_name`, `middle_name`, `c
 ('2023-10982', 'Cainong', 'Phil Sebastian', '', '09662985421', 'philsebastian.cainong@evsu.edu.ph', 'Active', '2025-04-04 09:57:57'),
 ('2023-11112', 'Lim', 'Adrian', 'Ty', '9216579012', 'adrian@gmail.com', 'Inactive', '2025-04-24 16:00:01'),
 ('2023-11780', 'Narbonita', 'Leonice', 'Poblete', '09123456789', 'leonice.narbonita@evsu.edu.ph', 'Active', '2025-04-04 09:57:57'),
+('2023-55472', 'Asebto', 'Marilyn', 'Arpon', '9235678234', 'marilyn@evsu.edu.ph', 'Active', '2025-04-27 15:43:07'),
 ('2024-09234', 'Lopez', 'Sean Oliver', '', '09542739182', 'seanoliver.lopez@evsu.edu.ph', 'Active', '2025-04-12 19:04:59'),
 ('2024-19243', 'Busante', 'Jonah May', 'Nalnalucab', '09452317865', 'jonahmay.busante@evsu.edu.ph', 'Active', '2025-04-04 13:57:22'),
 ('2025-09457', 'Coricor', 'Kent', 'Roberts', '9446889121', 'coricor.robert@evsu.edu.ph', 'Inactive', '2025-04-24 16:00:01'),
@@ -996,6 +1014,7 @@ CREATE TABLE `officers` (
 INSERT INTO `officers` (`officer_id`, `member_id`, `role_id`, `username`, `password`) VALUES
 ('intel_pres', '2023-04321', 'intel_president', 'intel_pres', '$2y$10$rJsG/00hLtRhRkTPZhvja.gdIbWzGXMG/WVM1g6KIuoh2.AJQqbhK'),
 ('intel_secretary', '2024-19243', 'intel_secretary', 'intel_sec', '$2y$10$frwqD3EDmq9uTC08IavkO.PtKP1n4.sdXFO5qFCpU3yp0smQN8.26'),
+('intel_ssg', '2024-09234', 'intel_ssg_representative', 'ssg_rep', '$2y$10$O8SZHDL6k3RNdqZitvonJupY6cugQB5S.Ug.Z9j7u8ubvz06Z0q16'),
 ('intel_treasurer', '2023-11780', 'intel_treasurer', 'intel_treas', '$2y$10$rvI6miAlmjrTaeaO63EYL.a6Tvu0cHKpfbFT2HTHjhvPO0HlvIsF6'),
 ('intel_vpres', '2023-10982', 'intel_vpresident', 'intel_vpres', '$2y$10$HsbgjHS5PP7/6dEFT5OjQeOHsSO4umKVMa5xTi2XdHVi7kLP9PiVq');
 
@@ -1095,6 +1114,7 @@ INSERT INTO `role` (`role_id`, `role_name`) VALUES
 ('intel_pio', 'Public Information Officer'),
 ('intel_president', 'President'),
 ('intel_secretary', 'Secretary'),
+('intel_ssg_representative', 'BSIT SSG Representative'),
 ('intel_treasurer', 'Treasurer'),
 ('intel_vpresident', 'Vice President');
 
@@ -1167,7 +1187,7 @@ ALTER TABLE `role`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1014;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1030;
 
 --
 -- AUTO_INCREMENT for table `deleted_members`
