@@ -51,11 +51,10 @@
     // Call the delete_member function
     if (delete_member($member_id, $officer_id)) {
         $_SESSION['success_message'] = "Member deleted successfully.";
+        // Redirect back to members page
+        header("Location: members.php");
+        exit();
     } else {
         $_SESSION['error_message'] = "Error deleting member.";
     }
-
-    // Redirect back to members page
-    header("Location: members.php");
-    exit();
 ?>

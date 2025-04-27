@@ -24,14 +24,14 @@
     $is_officer = in_array($current_role, ['intel_president', 'intel_secretary']);
 
     // Search query
-    $query = "SELECT o.officer_id, o.member_id, o.role_id,
+    $query = "SELECT o.member_id, o.role_id,
                     m.first_name, m.last_name,
                     r.role_name 
             FROM officers o 
             JOIN members m ON o.member_id = m.member_id 
             JOIN role r ON o.role_id = r.role_id
-            WHERE m.first_name LIKE ? OR m.last_name LIKE ?
-                    OR o.member_id LIKE ? OR o.officer_id LIKE ?
+            WHERE m.first_name LIKE ? OR m.last_name LIKE ? OR r.role_name LIKE ?
+                    OR o.member_id LIKE ?
             ORDER BY o.role_id";
 
     $stmt = $conn->prepare($query);
@@ -46,7 +46,6 @@
             $modal_id = 'delete_' . preg_replace('/[^a-zA-Z0-9]/', '_', $row['officer_id']);
             
             echo "<tr>
-                <td>" . htmlspecialchars($row['officer_id']) . "</td>
                 <td>" . htmlspecialchars($row['member_id']) . "</td>
                 <td>" . htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) . "</td>
                 <td>" . htmlspecialchars($row['role_name']) . "</td>

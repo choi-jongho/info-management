@@ -61,7 +61,7 @@
     }
 
     // Fetch all officers from the database with member names and role names
-    $query = "SELECT o.officer_id, o.member_id, o.role_id, 
+    $query = "SELECT o.member_id, o.role_id, 
                      m.first_name, m.last_name,
                      r.role_name 
               FROM officers o 
@@ -217,7 +217,6 @@
                     <table class="table table-hover">
                         <thead class="table-light">
                             <tr>
-                                <th>Officer ID</th>
                                 <th>Student ID</th>
                                 <th>Name</th>
                                 <th>Role</th>
@@ -231,7 +230,6 @@
                                     $modal_id = 'delete_' . preg_replace('/[^a-zA-Z0-9]/', '_', $row['officer_id']);
                                 ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($row['officer_id']); ?></td>
                                     <td><?php echo htmlspecialchars($row['member_id']); ?></td>
                                     <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
                                     <td><?php echo htmlspecialchars($row['role_name']); ?></td>

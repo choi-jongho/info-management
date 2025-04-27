@@ -218,16 +218,24 @@
                     } else {
                         $conn->rollback();
                         $_SESSION['error_message'] = "Cannot restore: Student ID already exists.";
+                        header("Location: members.php");
+                        exit();
                     }
                 } catch (Exception $e) {
                     $conn->rollback();
                     $_SESSION['error_message'] = "Restoration failed: " . $e->getMessage();
+                    header("Location: members.php");
+                    exit();
                 }
             } else {
                 $_SESSION['error_message'] = "Invalid member data format.";
+                header("Location: members.php");
+                exit();
             }
         } else {
             $_SESSION['error_message'] = "Invalid log entry.";
+            header("Location: members.php");
+            exit();
         }
 
         header("Location: activity_log.php" . (!empty($search_query) ? "?search=" . urlencode($search_query) : ""));
