@@ -98,7 +98,7 @@
                     <a href="edit_member.php?id=<?php echo urlencode($member_id); ?>" class="btn btn-warning">
                         <i class="fas fa-edit me-2"></i>Edit Member
                     </a>
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                    <button type="button" class="btn btn-danger mt-md-0 mt-1" data-bs-toggle="modal" data-bs-target="#deleteModal">
                         <i class="fas fa-trash me-2"></i>Delete
                     </button>
                 <?php endif; ?>
@@ -109,7 +109,6 @@
             <div class="card-header bg-navy text-white">
                 <h4 class="mb-0">
                     <i class="fas fa-id-card me-2"></i><?php echo htmlspecialchars(format_name($member['first_name'], $member['last_name'], $member['middle_name'])); ?>
-                    <span class="float-end"><?php echo get_status_badge($member['status']); ?></span>
                 </h4>
             </div>
             <div class="card-body">
